@@ -14,8 +14,6 @@
 # modified for colorized screen messages and local needs
 source /etc/shell-colors
 
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] &&	/usr/sbin/splashy_update "progress 60"
-
 # Tell the viewers what's going to happen.
 echo
 echo -e "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
@@ -77,8 +75,6 @@ if [ -x /usr/bin/fc-cache ]; then
   echo -e "${BOLDWHITE}Updating X font indexes:${COLOR_RESET} /usr/bin/fc-cache -f &"
   /usr/bin/fc-cache -f &
 fi
-
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 70"
 
 # If we are returning from single-user mode we will need to restart
 # udevd on systems that use udev:
@@ -191,8 +187,6 @@ if [ -x /usr/bin/update-pango-querymodules ]; then
   /usr/bin/update-pango-querymodules --verbose
 fi
 
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 80"
-
 # Start dnsmasq, a simple DHCP/DNS server:
 if [ -x /etc/rc.d/rc.dnsmasq ]; then
   /etc/rc.d/rc.dnsmasq start
@@ -302,8 +296,6 @@ if grep -q quota /etc/fstab ; then
   fi
 fi
 
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 90"
-
 # Start the SASL authentication server.  This provides SASL
 # authentication services for sendmail:
 if [ -x /etc/rc.d/rc.saslauthd ]; then
@@ -359,19 +351,6 @@ fi
 # Start all other rc files not listed in here
 if [ -x /etc/rc.d/rc.services ]; then
 	. /etc/rc.d/rc.services
-fi
-
-# Exit splashy here
-if [ ! -z `pidof -o %PPID /usr/sbin/splashy` ]; then
-	/usr/sbin/splashy_update "progress 100"
-	/usr/sbin/splashy_chvt 1
-	kill -9 `pidof -o %PPID /usr/sbin/splashy`
-fi
-
-# Change to VT1, in case splashy was running in VT8 and was exited by
-# the user. We don't want the display to stay stuck in VT8.
-if [ -x /usr/bin/chvt ]; then
-	/usr/bin/chvt 1
 fi
 
 # Start the local setup procedure.

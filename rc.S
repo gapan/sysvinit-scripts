@@ -13,9 +13,6 @@ source /etc/shell-colors
 echo
 echo -e "${BOLDYELLOW}Initializing.${COLOR_RESET}"
 
-# Start splashy
-[ -x /usr/sbin/splashy ] && /usr/sbin/splashy boot | splashy_chvt 8
-
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 # Try to mount /proc:
@@ -48,8 +45,6 @@ if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
     fi
   fi
 fi
-
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 5"
 
 # Initialize the Logical Volume Manager.
 # This won't start unless we find /etc/lvmtab (LVM1) or
@@ -117,8 +112,6 @@ if [ -f /etc/crypttab -a -x /sbin/cryptsetup.static ]; then
   done
 fi
 
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 10"
-
 # Enable swapping:
 echo -e "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
 /sbin/swapon -a 2> /dev/null
@@ -143,8 +136,6 @@ if [ -x /sbin/hwclock ]; then
     /sbin/hwclock $CLOCK_OPT --localtime --hctosys
   fi
 fi
-
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 15"
 
 # Test to see if the root partition is read-only, like it ought to be.
 READWRITE=no
@@ -274,8 +265,6 @@ if [ -d /sys/bus ]; then
   /sbin/mount -f sysfs /sys -t sysfs
 fi
 
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 25"
-
 # Configure ISA Plug-and-Play devices:
 if [ -r /etc/isapnp.conf ]; then
   if [ -x /sbin/isapnp ]; then
@@ -327,8 +316,6 @@ if grep -wq usbfs /proc/filesystems; then
     fi
   fi
 fi
-
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 35"
 
 # Mount non-root file systems in fstab, but not NFS or SMB 
 # because TCP/IP is not yet configured, and not proc or sysfs
@@ -384,8 +371,6 @@ fi
 if [ -x /etc/rc.d/rc.sysvinit ]; then
   . /etc/rc.d/rc.sysvinit
 fi
-
-[ ! -z `pidof -o %PPID /usr/sbin/splashy` ] && /usr/sbin/splashy_update "progress 50"
 
 # Run serial port setup script:
 # CAREFUL!  This can make some systems hang if the rc.serial script isn't
