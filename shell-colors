@@ -1,0 +1,50 @@
+#!/bin/sh
+# /etc/shell-colors
+#
+# This file provides escape code options for adding color to echo and
+# printf script commands. Source this file as necessary. Add additional
+# colors if desired.
+
+# Sourcing this script allows writing scripts with human readable
+# color references rather than embedding the actual raw escape codes,
+# which few people remember or know. A human readable variable enables
+# a person to read a script and know the intended color.
+
+# Write a script to include the human readable color code variables.
+# Example:
+# echo -e "${BOLDRED}This is a warning message!${COLOR_RESET}"
+# echo -e "${BOLDWHITE}Your network interface is: ${BOLDGREEN}eth0${COLOR_RESET}"
+
+# When this script is sourced and run, the $COLORED_SCRIPT variable will
+# determine whether the end-user sees color. For example, people running a
+# server might care less about colored scripts, but people running desktop
+# boxes likely will want otherwise.
+
+# Modify this variable to produce the desired effect:
+COLORED_SCRIPTS=yes
+
+ESC="\033["
+
+# This color scheme looks good with a black background.
+# Feel free to modify for other background color schemes.
+if [ "$COLORED_SCRIPTS" = "yes" ]; then
+  # user wants colorized scripts :-)
+  BOLDRED="${ESC}01;31m"
+  BOLDGREEN="${ESC}01;32m"
+  BOLDYELLOW="${ESC}01;33m"
+  BOLDBLUE="${ESC}01;34m"
+  BOLDMAGENTA="${ESC}01;35m"
+  BOLDCYAN="${ESC}01;36m"
+  BOLDWHITE="${ESC}01;37m"
+  COLOR_RESET="${ESC}00m"
+else
+  # user does not want colorized scripts :-(
+  BOLDRED="${ESC}00m"
+  BOLDGREEN="${ESC}00m"
+  BOLDYELLOW="${ESC}00m"
+  BOLDBLUE="${ESC}00m"
+  BOLDMAGENTA="${ESC}00m"
+  BOLDCYAN="${ESC}00m"
+  BOLDWHITE="${ESC}00m"
+  COLOR_RESET="${ESC}00m"
+fi

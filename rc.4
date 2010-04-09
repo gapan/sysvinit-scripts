@@ -1,0 +1,57 @@
+#! /bin/sh
+#
+# rc.4		This file is executed by init(8) when the system is being
+#		initialized for run level 4 (XDM)
+#
+# Version:	@(#)/etc/rc.d/rc.4	2.00	02/17/93
+#
+# Author:	Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
+# At least 47% rewritten by:  Patrick J. Volkerding <volkerdi@slackware.com>
+#
+# Modified for Salix by: George Vlahavas <vlahavas~at~gmail~dot~com>
+
+# modified for colorized screen messages and local needs
+source /etc/shell-colors
+
+# Tell the viewers what's going to happen...
+echo -e "${BOLDGREEN}Starting up X11 session manager...${COLOR_RESET}"
+
+# Try slim first
+if [ -x /usr/bin/slim ]; then
+  exec /usr/bin/slim
+fi
+
+# Then try gdm
+if [ -x /usr/bin/gdm ]; then
+  exec /usr/bin/gdm -nodaemon
+fi
+
+# Someone thought that gdm looked prettier in /usr/sbin,
+# so look there, too:
+if [ -x /usr/sbin/gdm ]; then
+  exec /usr/sbin/gdm -nodaemon
+fi
+
+# Not there?  OK, try to use KDE's kdm session manager:
+if [ -x /opt/kde/bin/kdm ]; then
+  exec /opt/kde/bin/kdm -nodaemon
+elif [ -x /usr/bin/kdm ]; then
+  exec /usr/bin/kdm -nodaemon
+fi
+
+# If all you have is XDM, I guess it will have to do:
+if [ -x /usr/bin/xdm ]; then
+  exec /usr/bin/xdm -nodaemon
+elif [ -x /usr/X11R6/bin/xdm ]; then
+  exec /usr/X11R6/bin/xdm -nodaemon
+fi
+
+# error
+echo
+echo -e "${BOLDRED}Hey, GDM, SLIM, KDM, or XDM are not executable or don't exist.${COLOR_RESET}"
+echo "Can't use runlevel 4 without one of those installed."
+echo
+echo -e "Toggle to another console ( ${BOLDWHITE}[${BOLDGREEN}Ctrl-${BOLDWHITE}] ${BOLDGREEN}Alt-F6${COLOR_RESET} ) to obtain access to your system."
+sleep 10
+
+# All done.

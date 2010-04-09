@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# We won't start these services from here, don't play with this list ;)
+blacklist(){
+for mask in \~ .new rc.S rc.M rc.K rc.4 rc.0 rc.6 .conf rc.services rc.inet1 rc.inet2 rc.inetd rc.rpc \
+	rc.modules rc.local rc.keymap rc.hald rc.wicd rc.sample rc.font rc.serial rc.udev rc.uwd rc.acpid rc.wireless \
+	rc.alsa rc.numlock rc.syslog rc.cups rc.famd rc.gpm \
+	rc.messagebus rc.licences rc.scanluns rc.ntpd rc.bluetooth \
+	rc.dnsmasq rc.snmpd rc.lprng rc.atalk rc.saslauthd rc.sendmail \
+	rc.mysqld rc.httpd rc.openldap rc.samba rc.gpm rc.sysvinit \
+	rc.pcmcia rc.fuse rc.modules.local rc.modules-$(uname -r) ; do
+	echo $1 | grep $mask
+done
+}
+
+# Here we go
+for rcscript in /etc/rc.d/rc.* ; do
+  [ "$(blacklist $rcscript)" ] && continue
+  if [ -x $rcscript ]; then
+    service="$(basename $rcscript | sed -e 's/^rc\.\(.*\)$/\1/')"
+    /usr/bin/ionice -c2 -n2 $rcscript start &
+  fi
+done
