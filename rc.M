@@ -350,7 +350,7 @@ fi
 
 # Start all other rc files not listed in here
 if [ -x /etc/rc.d/rc.services ]; then
-	. /etc/rc.d/rc.services
+	python /etc/rc.d/rc.services
 fi
 
 # Start the local setup procedure.
