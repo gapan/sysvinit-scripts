@@ -393,6 +393,3 @@ else
 fi
 chmod 600 /etc/random-seed
 
-# Clear the screen
-clear
-
