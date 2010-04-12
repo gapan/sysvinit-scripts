@@ -353,7 +353,7 @@ if [ -x /etc/rc.d/rc.services ]; then
 	python /etc/rc.d/rc.services
 fi
 
-# Start the local setup procedure.
+# Start numlockx if it's activated.
 if [ -x /etc/rc.d/rc.numlock ]; then
   . /etc/rc.d/rc.numlock start
 fi
