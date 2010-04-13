@@ -102,7 +102,7 @@ fi
 
 # Stop D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  sh /etc/rc.d/rc.messagebus stop
+  . /etc/rc.d/rc.messagebus stop
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
