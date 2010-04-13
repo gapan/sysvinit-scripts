@@ -81,7 +81,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      . /etc/rc.d/rc.udev start
     fi
   fi
 fi
@@ -106,7 +106,7 @@ mount -a -v 2> /dev/null | grep -v "already mounted"
 
 # Start the Network Time Protocol daemon:
 if [ -x /etc/rc.d/rc.ntpd ]; then
-  sh /etc/rc.d/rc.ntpd start
+  . /etc/rc.d/rc.ntpd start
 fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
@@ -157,22 +157,22 @@ fi
 
 # Start D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  sh /etc/rc.d/rc.messagebus start
+  . /etc/rc.d/rc.messagebus start
 fi
 
 # Start HAL:
 if [ -x /etc/rc.d/rc.hald ]; then
-  sh /etc/rc.d/rc.hald start
+  . /etc/rc.d/rc.hald start
 fi
 
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
-  sh /etc/rc.d/rc.bluetooth start
+  . /etc/rc.d/rc.bluetooth start
 fi
 
 # Start wicd:
 if [ -x /etc/rc.d/rc.wicd ]; then
-  sh /etc/rc.d/rc.wicd start
+  . /etc/rc.d/rc.wicd start
 fi
 
 # These GTK+/pango files need to be kept up to date for
@@ -224,7 +224,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /lib/udev/rc.optical-symlinks -a -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /lib/udev/rc.optical-symlinks
+      . /lib/udev/rc.optical-symlinks
     fi
   fi
 fi
