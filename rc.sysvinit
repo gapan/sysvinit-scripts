@@ -17,6 +17,8 @@
 #
 #               Written by Patrick Volkerding <volkerdi@slackware.com>, 1999
 #               from an example by Miquel van Smoorenburg <miquels@cistron.nl>.
+#
+# Modified for Salix by: George Vlahavas <vlahavas~at~gmail~dot~com>
 
 # modified for colorized screen messages and local needs
 . /etc/shell-colors

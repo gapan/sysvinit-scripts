@@ -9,6 +9,8 @@
 #
 # Author:	Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
 # Modified by:  Patrick J. Volkerding <volkerdi@slackware.com>
+#
+# Modified for Salix by: George Vlahavas <vlahavas~at~gmail~dot~com>
 
 # modified for colorized screen messages and local needs
 . /etc/shell-colors

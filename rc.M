@@ -10,6 +10,7 @@
 # Author:	Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
 #		Heavily modified by Patrick Volkerding <volkerdi@slackware.com>
 #
+# Modified for Salix by: George Vlahavas <vlahavas~at~gmail~dot~com>
 
 # modified for colorized screen messages and local needs
 . /etc/shell-colors
