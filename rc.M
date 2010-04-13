@@ -12,7 +12,7 @@
 #
 
 # modified for colorized screen messages and local needs
-source /etc/shell-colors
+. /etc/shell-colors
 
 # Tell the viewers what's going to happen.
 echo
