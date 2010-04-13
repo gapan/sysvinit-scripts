@@ -41,7 +41,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      . /etc/rc.d/rc.udev start
     fi
   fi
 fi
@@ -118,7 +118,7 @@ echo -e "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
 
 # Start FUSE, if requested:
 if [ -x /etc/rc.d/rc.fuse ]; then
-  sh /etc/rc.d/rc.fuse start
+  . /etc/rc.d/rc.fuse start
 fi
 
 # Set the system time from the hardware clock using hwclock --hctosys.
@@ -282,7 +282,7 @@ fi
 # it that you need.
 if [ -x /etc/rc.d/rc.modules.local -a -r /proc/modules ]; then
   echo "Running /etc/rc.d/rc.modules.local:"
-  /bin/sh /etc/rc.d/rc.modules.local
+  . /etc/rc.d/rc.modules.local
 elif [ -x /etc/rc.d/rc.modules-$(uname -r) -a -r /proc/modules ]; then
   echo "Running /etc/rc.d/rc.modules-$(uname -r):"
   . /etc/rc.d/rc.modules-$(uname -r)
@@ -377,7 +377,7 @@ fi
 # set up correctly.  If this happens, you may have to edit the file from a
 # boot disk, and/or set it as non-executable:
 if [ -x /etc/rc.d/rc.serial ]; then
-  sh /etc/rc.d/rc.serial start
+  . /etc/rc.d/rc.serial start
 fi
 
 # Carry an entropy pool between reboots to improve randomness.
