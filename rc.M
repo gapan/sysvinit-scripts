@@ -71,12 +71,6 @@ if [ -x /etc/rc.d/rc.syslog -a -x /usr/sbin/syslogd -a -d /var/log ]; then
   . /etc/rc.d/rc.syslog start
 fi
 
-# Update the X font indexes:
-if [ -x /usr/bin/fc-cache ]; then
-  echo -e "${BOLDWHITE}Updating X font indexes:${COLOR_RESET} /usr/bin/fc-cache -f &"
-  /usr/bin/fc-cache -f &
-fi
-
 # If we are returning from single-user mode we will need to restart
 # udevd on systems that use udev:
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
@@ -134,28 +128,6 @@ elif [ -x /etc/rc.d/rc.acpid ]; then # otherwise, start acpid:
   . /etc/rc.d/rc.acpid start
 fi
 
-# Update any existing icon cache files:
-if find /usr/share/icons 2> /dev/null | grep -q icon-theme.cache ; then
-  for theme_dir in /usr/share/icons/* ; do
-    if [ -r ${theme_dir}/icon-theme.cache ]; then
-      echo -e "${BOLDWHITE}Updating icon-theme.cache in ${theme_dir}...${COLOR_RESET}"
-      /usr/bin/gtk-update-icon-cache -t -f ${theme_dir} 1> /dev/null 2> /dev/null &
-    fi
-  done
-  # This would be a large file and probably shouldn't be there.
-  if [ -r /usr/share/icons/icon-theme.cache ]; then
-    echo -e "${BOLDWHITE}Deleting icon-theme.cache in /usr/share/icons...${COLOR_RESET}"
-    #/usr/bin/gtk-update-icon-cache -t -f /usr/share/icons 1> /dev/null 2> /dev/null &
-    rm -f /usr/share/icons/icon-theme.cache
-  fi
-fi
-
-# Update mime database:
-if [ -x /usr/bin/update-mime-database -a -d /usr/share/mime ]; then
-  echo -e "${BOLDWHITE}Updating MIME database:${COLOR_RESET} /usr/bin/update-mime-database /usr/share/mime &"
-  /usr/bin/update-mime-database /usr/share/mime 1> /dev/null 2> /dev/null &
-fi
-
 # Start D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
   . /etc/rc.d/rc.messagebus start
@@ -174,18 +146,6 @@ fi
 # Start wicd:
 if [ -x /etc/rc.d/rc.wicd ]; then
   . /etc/rc.d/rc.wicd start
-fi
-
-# These GTK+/pango files need to be kept up to date for
-# proper input method, pixbuf loaders, and font support.
-if [ -x /usr/bin/update-gtk-immodules ]; then
-  /usr/bin/update-gtk-immodules --verbose
-fi
-if [ -x /usr/bin/update-gdk-pixbuf-loaders ]; then
-  /usr/bin/update-gdk-pixbuf-loaders --verbose
-fi
-if [ -x /usr/bin/update-pango-querymodules ]; then
-  /usr/bin/update-pango-querymodules --verbose
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
