@@ -2,7 +2,6 @@
 
 # Update the X font indexes:
 if [ -x /usr/bin/fc-cache ]; then
-  echo -e "${BOLDWHITE}Updating X font indexes:${COLOR_RESET} /usr/bin/fc-cache -f &"
   /usr/bin/fc-cache -f &
 fi
 
@@ -10,21 +9,17 @@ fi
 if find /usr/share/icons 2> /dev/null | grep -q icon-theme.cache ; then
   for theme_dir in /usr/share/icons/* ; do
     if [ -r ${theme_dir}/icon-theme.cache ]; then
-      echo -e "${BOLDWHITE}Updating icon-theme.cache in ${theme_dir}...${COLOR_RESET}"
       /usr/bin/gtk-update-icon-cache -t -f ${theme_dir} 1> /dev/null 2> /dev/null &
     fi
   done
   # This would be a large file and probably shouldn't be there.
   if [ -r /usr/share/icons/icon-theme.cache ]; then
-    echo -e "${BOLDWHITE}Deleting icon-theme.cache in /usr/share/icons...${COLOR_RESET}"
-    #/usr/bin/gtk-update-icon-cache -t -f /usr/share/icons 1> /dev/null 2> /dev/null &
     rm -f /usr/share/icons/icon-theme.cache
   fi
 fi
 
 # Update mime database:
 if [ -x /usr/bin/update-mime-database -a -d /usr/share/mime ]; then
-  echo -e "${BOLDWHITE}Updating MIME database:${COLOR_RESET} /usr/bin/update-mime-database /usr/share/mime &"
   /usr/bin/update-mime-database /usr/share/mime 1> /dev/null 2> /dev/null &
 fi
 
