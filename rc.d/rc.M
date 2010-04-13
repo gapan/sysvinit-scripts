@@ -76,7 +76,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      . /etc/rc.d/rc.udev start
+      /bin/sh /etc/rc.d/rc.udev start
     fi
   fi
 fi
@@ -101,7 +101,7 @@ mount -a -v 2> /dev/null | grep -v "already mounted"
 
 # Start the Network Time Protocol daemon:
 if [ -x /etc/rc.d/rc.ntpd ]; then
-  . /etc/rc.d/rc.ntpd start
+  /bin/sh /etc/rc.d/rc.ntpd start
 fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
@@ -130,17 +130,17 @@ fi
 
 # Start D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  . /etc/rc.d/rc.messagebus start
+  /bin/sh /etc/rc.d/rc.messagebus start
 fi
 
 # Start HAL:
 if [ -x /etc/rc.d/rc.hald ]; then
-  . /etc/rc.d/rc.hald start
+  /bin/sh /etc/rc.d/rc.hald start
 fi
 
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
-  . /etc/rc.d/rc.bluetooth start
+  /bin/sh /etc/rc.d/rc.bluetooth start
 fi
 
 # Start wicd:
@@ -185,7 +185,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /lib/udev/rc.optical-symlinks -a -x /etc/rc.d/rc.udev ]; then
-      . /lib/udev/rc.optical-symlinks
+      /bin/sh /lib/udev/rc.optical-symlinks
     fi
   fi
 fi
