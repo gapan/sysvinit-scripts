@@ -34,8 +34,8 @@ if [ -r /etc/HOSTNAME ]; then
   /bin/hostname $(cat /etc/HOSTNAME | cut -f1 -d .)
 else
   # fall back on this old default:
-  echo "salix.salixos.org" > /etc/HOSTNAME
-  /bin/hostname salix
+  echo "darkstar.example.net" > /etc/HOSTNAME
+  /bin/hostname darkstar
 fi
 
 # Save the contents of 'dmesg':
