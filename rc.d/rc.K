@@ -67,7 +67,7 @@ if [ -x /etc/rc.d/rc.nfsd ]; then
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
-echo "Unmounting remote filesystems."
+echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
 umount -a -r -t nfs,smbfs,cifs
 
 # Shut down PCMCIA devices:
@@ -84,7 +84,7 @@ fi
 
 # Kill all processes.
 echo
-echo "Sending all processes the SIGHUP signal."
+echo -e "${BOLDMAGENTA}Sending all processes the SIGHUP signal.${COLOR_RESET}"
 killall5 -1
 echo -n "Waiting for processes to hang up"
 for loop in 0 1 2 3 4 5 ; do
@@ -92,7 +92,7 @@ for loop in 0 1 2 3 4 5 ; do
   echo -n "."
 done
 echo
-echo "Sending all processes the SIGTERM signal."
+echo -e "${BOLDMAGENTA}Sending all processes the SIGTERM signal.${COLOR_RESET}"
 killall5 -15
 echo -n "Waiting for processes to terminate"
 for loop in 0 1 2 3 4 5 ; do
@@ -100,7 +100,7 @@ for loop in 0 1 2 3 4 5 ; do
   echo -n "."
 done
 echo
-echo "Sending all processes the SIGKILL signal."
+echo -e "${BOLDMAGENTA}Sending all processes the SIGKILL signal.${COLOR_RESET}"
 killall5 -9
 echo -n "Waiting for processes to exit"
 for loop in 0 1 2 3 4 5 ; do

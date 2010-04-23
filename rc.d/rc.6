@@ -197,7 +197,7 @@ echo -e "${BOLDCYAN}Turning off swap.${COLOR_RESET}"
 
 # Umount any LVM volumes:
 if /bin/mount | /bin/grep -q '^/dev/mapper/' ; then
-  echo "Unmounting LVM volumes."
+  echo -e "${BOLDCYAN}Unmounting LVM volumes.${COLOR_RESET}"
   /bin/umount -v $(/bin/mount | /bin/grep '^/dev/mapper/' | /bin/cut -d ' ' -f 3 | /bin/tac)
 fi
 
@@ -218,13 +218,14 @@ if [ -f /etc/crypttab -a -x /sbin/cryptsetup.static ]; then
     DEV=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f2 -d' ')
     OPTS=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f4 -d' ')
     if /sbin/cryptsetup.static isLuks $DEV 2>/dev/null ; then
-      echo "Locking LUKS crypt volume '${LUKS}':"
+      echo -e "${BOLDCYAN}Locking LUKS crypt volume ${BOLDGREEN}'${LUKS}'${BOLDCYAN}:${COLOR_RESET}"
       /sbin/cryptsetup.static luksClose ${LUKS}
     elif echo $OPTS | grep -wq swap ; then
       # If any of the volumes was used as encrypted swap,
       # then run mkswap on the underlying device -
       # in case other Linux installations on this computer should use it:
-      echo "Erasing encrypted swap '${LUKS}' and restoring normal swap on ${DEV}:"
+      echo -e "${BOLDCYAN}Erasing encrypted swap
+      ${BOLDGREEN}'${LUKS}'${BOLDCYAN} and restoring normal swap on ${DEV}:${COLOR_RESET}"
       /sbin/cryptsetup.static remove ${LUKS}
       mkswap $DEV
     fi
@@ -233,7 +234,7 @@ fi
 
 # Deactivate LVM volume groups:
 if [ -r /etc/lvmtab -o -d /etc/lvm/backup ]; then
-  echo "Deactivating LVM volume groups:"
+  echo -e "${BOLDCYAN}Deactivating LVM volume groups:${COLOR_RESET}"
   /sbin/vgchange -an --ignorelockingfailure
 fi
 
@@ -256,7 +257,7 @@ if [ -x /sbin/genpowerd ]; then
     /sbin/genpowerd -k
     if [ ! $? = 0 ]; then
       echo
-      echo "There was an error signaling the UPS."
+      echo -e "${BOLDRED}There was an error signaling the UPS.${COLOR_RESET}"
       echo "Perhaps you need to edit /etc/genpowerd.conf to configure"
       echo "the serial line and UPS type."
       # Wasting 15 seconds of precious power:
