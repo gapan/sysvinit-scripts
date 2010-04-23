@@ -248,11 +248,11 @@ if grep -q quota /etc/fstab ; then
     /bin/rm -f $quotafs/{a,}quota.{group,user}.new
   done
   if [ -x /sbin/quotacheck ]; then
-    echo "Checking filesystem quotas:  /sbin/quotacheck -avugm"
+    echo -e "${BOLDCYAN}Checking filesystem quotas:${COLOR_RESET}  /sbin/quotacheck -avugm"
     /sbin/quotacheck -avugm
   fi
   if [ -x /sbin/quotaon ]; then
-    echo "Activating filesystem quotas:  /sbin/quotaon -avug"
+    echo -e "${BOLDCYAN}Activating filesystem quotas:${COLOR_RESET}  /sbin/quotaon -avug"
     /sbin/quotaon -avug
   fi
 fi
