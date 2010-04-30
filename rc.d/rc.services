@@ -1,23 +1,74 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-# We won't start these services from here, don't play with this list ;)
-blacklist(){
-for mask in \~ .new rc.S rc.M rc.K rc.4 rc.0 rc.6 .conf rc.services rc.inet1 rc.inet2 rc.rpc \
-	rc.modules rc.local rc.keymap rc.hald rc.wicd rc.sample rc.font rc.serial rc.udev rc.uwd rc.acpid rc.wireless \
-	rc.alsa rc.numlock rc.syslog rc.cups rc.famd rc.gpm \
-	rc.messagebus rc.licences rc.scanluns rc.ntpd rc.bluetooth \
-	rc.dnsmasq rc.snmpd rc.lprng rc.atalk rc.saslauthd rc.sendmail \
-	rc.mysqld rc.httpd rc.openldap rc.samba rc.gpm rc.sysvinit \
-	rc.pcmcia rc.fuse rc.modules.local rc.modules-$(uname -r) ; do
-	echo $1 | grep $mask
-done
-}
+import os
 
-# Here we go
-for rcscript in /etc/rc.d/rc.* ; do
-  [ "$(blacklist $rcscript)" ] && continue
-  if [ -x $rcscript ]; then
-    service="$(basename $rcscript | sed -e 's/^rc\.\(.*\)$/\1/')"
-    /usr/bin/ionice -c2 -n2 $rcscript start &
-  fi
-done
+blacklist = [ '.conf', \
+		'.new', \
+		'rc.0', \
+		'rc.4', \
+		'rc.6', \
+		'rc.acpid', \
+		'rc.alsa', \
+		'rc.atalk', \
+		'rc.bind', \
+		'rc.bluetooth', \
+		'rc.cups', \
+		'rc.dnsmasq', \
+		'rc.famd', \
+		'rc.firewall', \
+		'rc.font', \
+		'rc.fuse', \
+		'rc.gpm', \
+		'rc.hald', \
+		'rc.httpd', \
+		'rc.inet1', \
+		'rc.inet2', \
+		'rc.inetd', \
+		'rc.ip_forward', \
+		'rc.K', \
+		'rc.keymap', \
+		'rc.licences', \
+		'rc.local', \
+		'rc.lprng', \
+		'rc.M', \
+		'rc.messagebus', \
+		'rc.modules', \
+		'rc.mysqld', \
+		'rc.nfsd', \
+		'rc.ntpd', \
+		'rc.numlock', \
+		'rc.openldap', \
+		'rc.pcmcia', \
+		'rc.rpc', \
+		'rc.S', \
+		'rc.samba', \
+		'rc.sample', \
+		'rc.saslauthd', \
+		'rc.scanluns', \
+		'rc.sendmail', \
+		'rc.serial', \
+		'rc.services', \
+		'rc.snmpd', \
+		'rc.sshd', \
+		'rc.syslog', \
+		'rc.sysvinit', \
+		'rc.udev', \
+		'rc.uwd', \
+		'rc.wicd', \
+		'rc.wireless' ]
+
+def validscripts():
+	scripts = []
+	for script in os.listdir('/etc/rc.d/'):
+		use = True
+		for blk in blacklist:
+			if blk in script:
+				use = False
+		if use == True:
+			if os.access('/etc/rc.d/'+script, os.X_OK):
+				if os.path.isfile('/etc/rc.d/'+script):
+					scripts.append(script)
+	return scripts
+
+for i in validscripts():
+	os.system('/usr/bin/ionice -c2 -n2 sh /etc/rc.d/'+i+' start &')
