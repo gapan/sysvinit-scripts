@@ -19,12 +19,6 @@
 echo
 echo -e "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
 
-# Update all the shared library links:
-if [ -x /sbin/ldconfig ]; then
-  echo -e "${BOLDWHITE}Updating shared library links:${COLOR_RESET} /sbin/ldconfig"
-  /sbin/ldconfig &
-fi
-
 # Screen blanks after 15 minutes idle time, and powers down in one hour
 # if the kernel supports APM or ACPI power management:
 /bin/setterm -blank 15 -powersave powerdown -powerdown 60

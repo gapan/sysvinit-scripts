@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Update all the shared library links:
+if [ -x /sbin/ldconfig ]; then
+  /sbin/ldconfig &
+fi
+
 # Update the X font indexes:
 if [ -x /usr/bin/fc-cache ]; then
   /usr/bin/fc-cache -f &
