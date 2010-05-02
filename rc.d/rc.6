@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/dash
 #
 # rc.6		This file is executed by init when it goes into runlevel
 #		0 (halt) or runlevel 6 (reboot). It kills all processes,
@@ -68,32 +68,32 @@ fi
 
 # Stop the Apache web server:
 if [ -x /etc/rc.d/rc.httpd ]; then
-  /etc/rc.d/rc.httpd stop
+  /bin/dash /etc/rc.d/rc.httpd stop
 fi
 
 # Stop the MySQL database:
 if [ -r /var/run/mysql/mysql.pid ]; then
-  . /etc/rc.d/rc.mysqld stop
+  /bin/dash /etc/rc.d/rc.mysqld stop
 fi
 
 # Stop the Samba server:
 if [ -x /etc/rc.d/rc.samba ]; then
-  . /etc/rc.d/rc.samba stop
+  /bin/dash /etc/rc.d/rc.samba stop
 fi
 
 # Shut down the NFS server:
 if [ -x /etc/rc.d/rc.nfsd ]; then
-  /etc/rc.d/rc.nfsd stop
+  /bin/dash /etc/rc.d/rc.nfsd stop
 fi
 
 # Shut down the SSH server:
 if [ -x /etc/rc.d/rc.sshd ]; then
-  /etc/rc.d/rc.sshd stop
+  /bin/dash /etc/rc.d/rc.sshd stop
 fi
 
 # Shut down the SASL authentication daemon:
 if [ -x /etc/rc.d/rc.saslauthd ]; then
-  /etc/rc.d/rc.saslauthd stop
+  /bin/dash /etc/rc.d/rc.saslauthd stop
 fi
 
 # Shut down OpenLDAP:
@@ -103,7 +103,7 @@ fi
 
 # Stop D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  /bin/sh /etc/rc.d/rc.messagebus stop
+  /bin/bash /etc/rc.d/rc.messagebus stop
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
@@ -122,7 +122,7 @@ fi
 # isn't a diskless client with the / partition mounted via NFS:
 if ! /bin/mount | /bin/grep -q 'on / type nfs' ; then
   if [ -x /etc/rc.d/rc.inet1 ]; then
-    . /etc/rc.d/rc.inet1 stop
+    /bin/bash /etc/rc.d/rc.inet1 stop
   fi
 fi
 
@@ -137,7 +137,7 @@ fi
 
 # Shut down PCMCIA devices:
 if [ -x /etc/rc.d/rc.pcmcia ]; then
-  . /etc/rc.d/rc.pcmcia stop
+  /bin/bash /etc/rc.d/rc.pcmcia stop
   # The cards might need a little extra time here to deactivate:
   /bin/sleep 5
 fi
@@ -150,7 +150,7 @@ fi
 
 # Terminate acpid before syslog:
 if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
-  . /etc/rc.d/rc.acpid stop
+  /bin/dash /etc/rc.d/rc.acpid stop
 fi
 
 # Kill all processes.
@@ -211,22 +211,22 @@ echo "${BOLDCYAN}Remounting root filesystem read-only.${COLOR_RESET}"
 /bin/sync
 
 # Close any volumes opened by cryptsetup:
-if [ -f /etc/crypttab -a -x /sbin/cryptsetup.static ]; then
+if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
   cat /etc/crypttab | grep -v "^#" | grep -v "^$" | while read line; do
     # NOTE: we only support LUKS formatted volumes (except for swap)!
     LUKS=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f1 -d' ')
     DEV=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f2 -d' ')
     OPTS=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f4 -d' ')
-    if /sbin/cryptsetup.static isLuks $DEV 2>/dev/null ; then
+    if /sbin/cryptsetup isLuks $DEV 2>/dev/null ; then
       echo "${BOLDCYAN}Locking LUKS crypt volume ${BOLDGREEN}'${LUKS}'${BOLDCYAN}:${COLOR_RESET}"
-      /sbin/cryptsetup.static luksClose ${LUKS}
+      /sbin/cryptsetup luksClose ${LUKS}
     elif echo $OPTS | grep -wq swap ; then
       # If any of the volumes was used as encrypted swap,
       # then run mkswap on the underlying device -
       # in case other Linux installations on this computer should use it:
       echo "${BOLDCYAN}Erasing encrypted swap
       ${BOLDGREEN}'${LUKS}'${BOLDCYAN} and restoring normal swap on ${DEV}:${COLOR_RESET}"
-      /sbin/cryptsetup.static remove ${LUKS}
+      /sbin/cryptsetup remove ${LUKS}
       mkswap $DEV
     fi
   done

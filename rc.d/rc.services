@@ -19,9 +19,7 @@ blacklist = [ '.conf', \
 		'rc.firewall', \
 		'rc.font', \
 		'rc.fuse', \
-		'rc.gpm', \
 		'rc.hald', \
-		'rc.httpd', \
 		'rc.inet1', \
 		'rc.inet2', \
 		'rc.inetd', \
@@ -45,7 +43,6 @@ blacklist = [ '.conf', \
 		'rc.samba', \
 		'rc.sample', \
 		'rc.saslauthd', \
-		'rc.scanluns', \
 		'rc.sendmail', \
 		'rc.serial', \
 		'rc.services', \

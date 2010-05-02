@@ -54,15 +54,17 @@ fi
 # Hopefully this situation will be unified in the future, but for now
 # that's how it is...
 #
+(
 if [ -x /etc/rc.d/rc.pcmcia ]; then
-  . /etc/rc.d/rc.pcmcia start
+  /bin/dash /etc/rc.d/rc.pcmcia start
   # The cards might need a little extra time here to initialize.
   sleep 5
 fi
+) &
 
 # Start the system logger.
 if [ -x /etc/rc.d/rc.syslog -a -x /usr/sbin/syslogd -a -d /var/log ]; then
-  . /etc/rc.d/rc.syslog start
+  /bin/dash /etc/rc.d/rc.syslog start
 fi
 
 # If we are returning from single-user mode we will need to restart
@@ -70,24 +72,24 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      /bin/bash /etc/rc.d/rc.udev start
     fi
   fi
 fi
 
 # Initialize the networking hardware.
 if [ -x /etc/rc.d/rc.inet1 ]; then
-  . /etc/rc.d/rc.inet1
+  /bin/bash /etc/rc.d/rc.inet1
 fi
 
 # Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
 if [ -x /etc/rc.d/rc.scanluns ]; then
-  . /etc/rc.d/rc.scanluns
+  /bin/bash /etc/rc.d/rc.scanluns
 fi
 
 # Start networking daemons:
 if [ -x /etc/rc.d/rc.inet2 ]; then
-  . /etc/rc.d/rc.inet2
+  /bin/bash /etc/rc.d/rc.inet2
 fi
 
 # Mount any additional filesystem types that haven't already been mounted:
@@ -95,7 +97,7 @@ mount -a -v 2> /dev/null | grep -v "already mounted"
 
 # Start the Network Time Protocol daemon:
 if [ -x /etc/rc.d/rc.ntpd ]; then
-  /bin/sh /etc/rc.d/rc.ntpd start
+  /bin/dash /etc/rc.d/rc.ntpd start
 fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
@@ -119,51 +121,51 @@ if [ -e /proc/apm ]; then
     /usr/sbin/apmd
   fi
 elif [ -x /etc/rc.d/rc.acpid ]; then # otherwise, start acpid:
-  . /etc/rc.d/rc.acpid start
+  /bin/dash /etc/rc.d/rc.acpid start
 fi
 
 # Start D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  /bin/sh /etc/rc.d/rc.messagebus start
+  /bin/bash /etc/rc.d/rc.messagebus start
 fi
 
 # Start HAL:
 if [ -x /etc/rc.d/rc.hald ]; then
-  /bin/sh /etc/rc.d/rc.hald start
+  /bin/dash /etc/rc.d/rc.hald start
 fi
 
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
-  /bin/sh /etc/rc.d/rc.bluetooth start
+  /bin/dash /etc/rc.d/rc.bluetooth start
 fi
 
 # Start wicd:
 if [ -x /etc/rc.d/rc.wicd ]; then
-  . /etc/rc.d/rc.wicd start
+  /bin/dash /etc/rc.d/rc.wicd start
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
 if [ -x /etc/rc.d/rc.dnsmasq ]; then
-  /etc/rc.d/rc.dnsmasq start
+  /bin/dash /etc/rc.d/rc.dnsmasq start
 fi
 
 # Start snmpd:
 if [ -x /etc/rc.d/rc.snmpd ]; then
-  /etc/rc.d/rc.snmpd start
+  /bin/dash /etc/rc.d/rc.snmpd start
 fi
 
 # Start the print spooling system.  This will usually be LPRng (lpd) or CUPS.
 if [ -x /etc/rc.d/rc.cups ]; then
   # Start CUPS:
-  /etc/rc.d/rc.cups start
+  /bin/bash /etc/rc.d/rc.cups start
 elif [ -x /etc/rc.d/rc.lprng ]; then
   # Start LPRng (lpd):
-  . /etc/rc.d/rc.lprng start
+  /bin/bash /etc/rc.d/rc.lprng start
 fi
 
 # Start netatalk. (a file/print server for Macs using Appletalk)
 if [ -x /etc/rc.d/rc.atalk ]; then
-  /etc/rc.d/rc.atalk
+  /bin/dash /etc/rc.d/rc.atalk
 fi
 
 # Start smartd, which monitors the status of S.M.A.R.T. compatible
@@ -179,7 +181,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /lib/udev/rc.optical-symlinks -a -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /lib/udev/rc.optical-symlinks
+      /bin/dash /lib/udev/rc.optical-symlinks
     fi
   fi
 fi
@@ -254,12 +256,12 @@ fi
 # Start the SASL authentication server.  This provides SASL
 # authentication services for sendmail:
 if [ -x /etc/rc.d/rc.saslauthd ]; then
-  . /etc/rc.d/rc.saslauthd start
+  /bin/dash /etc/rc.d/rc.saslauthd start
 fi
 
 # Start the sendmail daemon:
 if [ -x /etc/rc.d/rc.sendmail ]; then
-  . /etc/rc.d/rc.sendmail start
+  /bin/dash /etc/rc.d/rc.sendmail start
 fi
 
 # Load ALSA (sound) defaults:
@@ -274,28 +276,7 @@ fi
 
 # Start the MySQL database:
 if [ -x /etc/rc.d/rc.mysqld ]; then
-  . /etc/rc.d/rc.mysqld start
-fi
-
-# Start Apache web server:
-if [ -x /etc/rc.d/rc.httpd ]; then
-  . /etc/rc.d/rc.httpd start
-fi
-
-# Start OpenLDAP:
-if [ -x /etc/rc.d/rc.openldap ]; then
-  . /etc/rc.d/rc.openldap start
-fi
-
-# Start Samba (a file/print server for Win95/NT machines).
-# Samba can be started in /etc/inetd.conf instead.
-if [ -x /etc/rc.d/rc.samba ]; then
-  . /etc/rc.d/rc.samba start
-fi
-
-# Start the GPM mouse server:
-if [ -x /etc/rc.d/rc.gpm ]; then
-  . /etc/rc.d/rc.gpm start
+  /bin/dash /etc/rc.d/rc.mysqld start
 fi
 
 # If there are SystemV init scripts for this runlevel, run them.
@@ -310,7 +291,7 @@ fi
 
 # Start numlockx if it's activated.
 if [ -x /etc/rc.d/rc.numlock ]; then
-  . /etc/rc.d/rc.numlock start
+  /bin/dash /etc/rc.d/rc.numlock start
 fi
 
 # Load a custom screen font if the user has an rc.font script.
