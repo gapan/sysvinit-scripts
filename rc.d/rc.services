@@ -12,6 +12,7 @@ blacklist = [ '.conf', \
 		'rc.atalk', \
 		'rc.bind', \
 		'rc.bluetooth', \
+		'rc.cryptsetup', \
 		'rc.cups', \
 		'rc.dnsmasq', \
 		'rc.famd', \

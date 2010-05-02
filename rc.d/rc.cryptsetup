@@ -1,7 +1,9 @@
 #!/bin/bash
+#
+# This is split from rc.S. It shouldn't be run as other scripts, as it's
+# not a service. It should only be launched during boot if cryptsetup is
+# needed.
 
-# Open any volumes created by cryptsetup:
-if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
   # First, check for device-mapper support.
   if ! grep -wq device-mapper /proc/devices ; then
     # If device-mapper exists as a module, try to load it.
@@ -43,4 +45,3 @@ if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
       mkswap /dev/mapper/$LUKS
     fi
   done
-fi

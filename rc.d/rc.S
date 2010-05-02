@@ -67,8 +67,8 @@ if [ -r /etc/lvmtab -o -d /etc/lvm/backup ]; then
   fi
 fi
 
-# Run cryptsetup
-if [ -x /etc/rc.d/rc.cryptsetup ]; then
+# Open any volumes created by cryptsetup:
+if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
 	/bin/bash /etc/rc.d/rc.cryptsetup
 fi
 
