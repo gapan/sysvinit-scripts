@@ -24,7 +24,7 @@
 . /etc/shell-colors
 
 # Tell the viewers what's going to happen.
-echo -e "${BOLDBLUE}Running System V scripts.${COLOR_RESET}"
+echo "${BOLDBLUE}Running System V scripts.${COLOR_RESET}"
 
 # Run an init script:
 startup() {

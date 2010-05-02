@@ -14,7 +14,7 @@
 . /etc/shell-colors
 
 # Tell the viewers what's going to happen...
-echo -e "${BOLDGREEN}Starting up X11 session manager...${COLOR_RESET}"
+echo "${BOLDGREEN}Starting up X11 session manager...${COLOR_RESET}"
 
 # Try slim first
 if [ -x /usr/bin/slim ]; then
@@ -48,10 +48,10 @@ fi
 
 # error
 echo
-echo -e "${BOLDRED}Hey, GDM, SLIM, KDM, or XDM are not executable or don't exist.${COLOR_RESET}"
+echo "${BOLDRED}Hey, GDM, SLIM, KDM, or XDM are not executable or don't exist.${COLOR_RESET}"
 echo "Can't use runlevel 4 without one of those installed."
 echo
-echo -e "Toggle to another console ( ${BOLDWHITE}[${BOLDGREEN}Ctrl-${BOLDWHITE}] ${BOLDGREEN}Alt-F6${COLOR_RESET} ) to obtain access to your system."
+echo "Toggle to another console ( ${BOLDWHITE}[${BOLDGREEN}Ctrl-${BOLDWHITE}] ${BOLDGREEN}Alt-F6${COLOR_RESET} ) to obtain access to your system."
 sleep 10
 
 # All done.

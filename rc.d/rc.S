@@ -11,12 +11,12 @@
 
 # Tell the viewers what's going to happen.
 echo
-echo -e "${BOLDYELLOW}Initializing.${COLOR_RESET}"
+echo "${BOLDYELLOW}Initializing.${COLOR_RESET}"
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 # Try to mount /proc:
-echo -e "${BOLDCYAN}Mounting proc filesystem:${COLOR_RESET}"
+echo "${BOLDCYAN}Mounting proc filesystem:${COLOR_RESET}"
 /sbin/mount -v proc /proc -n -t proc 2> /dev/null
 
 # Mount sysfs next, if the kernel supports it:
@@ -52,7 +52,7 @@ fi
 # use LVM you must run /sbin/vgscan yourself the first time (and
 # create some VGs and LVs).
 if [ -r /etc/lvmtab -o -d /etc/lvm/backup ]; then
-  echo -e "${BOLDWHITE}Initializing LVM (Logical Volume Manager):${COLOR_RESET}"
+  echo "${BOLDWHITE}Initializing LVM (Logical Volume Manager):${COLOR_RESET}"
   # Check for device-mapper support.
   if ! grep -wq device-mapper /proc/devices ; then
     # Try to load a device-mapper kernel module:
@@ -73,7 +73,7 @@ if [ -x /etc/rc.d/rc.cryptsetup ]; then
 fi
 
 # Enable swapping:
-echo -e "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
+echo "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
 /sbin/swapon -a 2> /dev/null
 
 # Start FUSE, if requested:
@@ -89,10 +89,10 @@ if [ -x /sbin/hwclock ]; then
     CLOCK_OPT="--directisa"
   fi
   if grep -wq "^UTC" /etc/hardwareclock ; then
-    echo -e "${BOLDRED}Setting system time from the hardware clock (UTC).${COLOR_RESET}"
+    echo "${BOLDRED}Setting system time from the hardware clock (UTC).${COLOR_RESET}"
     /sbin/hwclock $CLOCK_OPT --utc --hctosys
   else
-    echo -e "${BOLDWHITE}Setting system time from the hardware clock (localtime).${COLOR_RESET}"
+    echo "${BOLDWHITE}Setting system time from the hardware clock (localtime).${COLOR_RESET}"
     /sbin/hwclock $CLOCK_OPT --localtime --hctosys
   fi
 fi
@@ -115,7 +115,7 @@ fi
 if [ ! $READWRITE = yes ]; then
   RETVAL=0
   if [ ! -r /etc/fastboot ]; then
-    echo -e "${BOLDCYAN}Checking root filesystem:${COLOR_RESET}"
+    echo "${BOLDCYAN}Checking root filesystem:${COLOR_RESET}"
     /sbin/fsck $FORCEFSCK -C -a /
     RETVAL=$?
   fi
@@ -155,7 +155,7 @@ if [ ! $READWRITE = yes ]; then
     reboot -f
   fi
   # Remount the root filesystem in read-write mode
-  echo -e "${BOLDCYAN}Remounting root device with read-write enabled.${COLOR_RESET}"
+  echo "${BOLDCYAN}Remounting root device with read-write enabled.${COLOR_RESET}"
   /sbin/mount -w -v -n -o remount /
   if [ $? -gt 0 ] ; then
     echo
@@ -208,7 +208,7 @@ fi # Done checking root filesystem
 # Any /etc/mtab that exists here is old, so we delete it to start over:
 /bin/rm -f /etc/mtab*
 # Remounting the / partition will initialize the new /etc/mtab:
-echo -e "${BOLDCYAN}Creating /etc/mtab.${COLOR_RESET}"
+echo "${BOLDCYAN}Creating /etc/mtab.${COLOR_RESET}"
 /sbin/mount -w -o remount /
 
 # Read in the correct / filesystem complete with arguments so mount will
@@ -228,7 +228,7 @@ fi
 # Configure ISA Plug-and-Play devices:
 if [ -r /etc/isapnp.conf ]; then
   if [ -x /sbin/isapnp ]; then
-  	echo -e "${BOLDWHITE}Configuring ISA Plug-and-Play devices.${COLOR_RESET}"
+  	echo "${BOLDWHITE}Configuring ISA Plug-and-Play devices.${COLOR_RESET}"
     /sbin/isapnp /etc/isapnp.conf
   fi
 fi
@@ -256,13 +256,13 @@ fi
 
 # Configure runtime kernel parameters:
 if [ -x /sbin/sysctl -a -r /etc/sysctl.conf ]; then
-  echo -e "${BOLDWHITE}Setting kernel runtime parameters:${COLOR_RESET}"
+  echo "${BOLDWHITE}Setting kernel runtime parameters:${COLOR_RESET}"
   /sbin/sysctl -e -p /etc/sysctl.conf
 fi
 
 # Check all the non-root filesystems:
 if [ ! -r /etc/fastboot ]; then
-  echo -e "${BOLDCYAN}Checking non-root filesystems:${COLOR_RESET}"
+  echo "${BOLDCYAN}Checking non-root filesystems:${COLOR_RESET}"
   /sbin/fsck $FORCEFSCK -C -R -A -a
 fi
 
@@ -284,7 +284,7 @@ fi
 # it.  With a 2.6.x or newer kernel udev mounts devpts.
 # We also need to wait a little bit to let USB and other
 # hotplugged devices settle (sorry to slow down the boot):
-echo -e "${BOLDCYAN}Mounting non-root filesystems:${COLOR_RESET}"
+echo "${BOLDCYAN}Mounting non-root filesystems:${COLOR_RESET}"
 sleep 3
 if /bin/grep -wq devpts /proc/mounts ; then
   /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs,nodevpts
@@ -342,7 +342,7 @@ fi
 
 # Carry an entropy pool between reboots to improve randomness.
 if [ -f /etc/random-seed ]; then
-  echo -e "${BOLDWHITE}Using /etc/random-seed to initialize /dev/urandom.${COLOR_RESET}"
+  echo "${BOLDWHITE}Using /etc/random-seed to initialize /dev/urandom.${COLOR_RESET}"
   cat /etc/random-seed > /dev/urandom
 fi
 # Use the pool size from /proc, or 512 bytes:

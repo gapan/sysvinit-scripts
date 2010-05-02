@@ -17,7 +17,7 @@
 
 # Tell the viewers what's going to happen.
 echo
-echo -e "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
+echo "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
 
 # Screen blanks after 15 minutes idle time, and powers down in one hour
 # if the kernel supports APM or ACPI power management:
@@ -103,7 +103,7 @@ fi
 
 # Remove stale hunt sockets so the game can start.
 if [ -r /tmp/hunt -o -r /tmp/hunt.stats ]; then
-  echo -e "${BOLDWHITE}Removing stale hunt sockets from /tmp.${COLOR_RESET}"
+  echo "${BOLDWHITE}Removing stale hunt sockets from /tmp.${COLOR_RESET}"
   /bin/rm -f /tmp/hunt*
 fi
 
@@ -115,7 +115,7 @@ chmod 1777 /tmp /var/tmp
 # If APM is enabled in the kernel, start apmd:
 if [ -e /proc/apm ]; then
   if [ -x /usr/sbin/apmd ]; then
-    echo -e "${BOLDWHITE}Starting APM daemon:${COLOR_RESET}  /usr/sbin/apmd"
+    echo "${BOLDWHITE}Starting APM daemon:${COLOR_RESET}  /usr/sbin/apmd"
     /usr/sbin/apmd
   fi
 elif [ -x /etc/rc.d/rc.acpid ]; then # otherwise, start acpid:
@@ -192,7 +192,7 @@ fi
 # You'll also need to configure a similar block in /etc/rc.d/rc.6 if you want
 # support for stopping the UPS's inverter after the machine halts.
 #if [ -x /sbin/genpowerd ]; then
-#  echo -e "${BOLDWHITE}Starting genpowerd daemon.${COLOR_RESET}"
+#  echo "${BOLDWHITE}Starting genpowerd daemon.${COLOR_RESET}"
 #  /sbin/genpowerd
 #fi
 
@@ -210,13 +210,13 @@ fi
 # If you want cron to actually log activity to /var/log/cron, then change
 # -l10 to -l8 to increase the logging level.
 if [ -x /usr/sbin/crond ]; then
-  echo -e "${BOLDWHITE}Starting the cron scheduling daemon:${COLOR_RESET}"
+  echo "${BOLDWHITE}Starting the cron scheduling daemon:${COLOR_RESET}"
   /usr/sbin/crond -l10 >>/var/log/cron 2>&1
 fi
 
 # Start atd (manages jobs scheduled with 'at'):
 if [ -x /usr/sbin/atd ]; then
-  echo -e "${BOLDWHITE}Starting the at scheduling daemon:${COLOR_RESET}"
+  echo "${BOLDWHITE}Starting the at scheduling daemon:${COLOR_RESET}"
   /usr/sbin/atd -b 15 -l 1
 fi
 
@@ -242,11 +242,11 @@ if grep -q quota /etc/fstab ; then
     /bin/rm -f $quotafs/{a,}quota.{group,user}.new
   done
   if [ -x /sbin/quotacheck ]; then
-    echo -e "${BOLDCYAN}Checking filesystem quotas:${COLOR_RESET}  /sbin/quotacheck -avugm"
+    echo "${BOLDCYAN}Checking filesystem quotas:${COLOR_RESET}  /sbin/quotacheck -avugm"
     /sbin/quotacheck -avugm
   fi
   if [ -x /sbin/quotaon ]; then
-    echo -e "${BOLDCYAN}Activating filesystem quotas:${COLOR_RESET}  /sbin/quotaon -avug"
+    echo "${BOLDCYAN}Activating filesystem quotas:${COLOR_RESET}  /sbin/quotaon -avug"
     /sbin/quotaon -avug
   fi
 fi

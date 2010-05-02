@@ -17,7 +17,7 @@
 
 # Tell the viewers what's going to happen.
 echo
-echo -e "${BOLDYELLOW}Preparing for single user mode (run level 1).${COLOR_RESET}"
+echo "${BOLDYELLOW}Preparing for single user mode (run level 1).${COLOR_RESET}"
 
 # Set the path.
 PATH=/sbin:/bin:/usr/bin:/usr/sbin
@@ -35,14 +35,14 @@ fi
 # Try to turn off quota:
 if grep -q quota /etc/fstab ; then
   if [ -x /sbin/quotaoff ]; then
-    echo -e "${BOLDWHITE}Turning off filesystem quotas.${COLOR_RESET}"
+    echo "${BOLDWHITE}Turning off filesystem quotas.${COLOR_RESET}"
     /sbin/quotaoff -a
   fi
 fi
 
 # Try to turn off accounting:
 if [ -x /sbin/accton -a -r /var/log/pacct ]; then
-  echo -e "${BOLDWHITE}Turning off accounting.${COLOR_RESET}"
+  echo "${BOLDWHITE}Turning off accounting.${COLOR_RESET}"
   /sbin/accton off
 fi
 
@@ -67,7 +67,7 @@ if [ -x /etc/rc.d/rc.nfsd ]; then
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
-echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
+echo "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
 umount -a -r -t nfs,smbfs,cifs
 
 # Shut down PCMCIA devices:
@@ -84,7 +84,7 @@ fi
 
 # Kill all processes.
 echo
-echo -e "${BOLDMAGENTA}Sending all processes the SIGHUP signal.${COLOR_RESET}"
+echo "${BOLDMAGENTA}Sending all processes the SIGHUP signal.${COLOR_RESET}"
 killall5 -1
 echo -n "Waiting for processes to hang up"
 for loop in 0 1 2 3 4 5 ; do
@@ -92,7 +92,7 @@ for loop in 0 1 2 3 4 5 ; do
   echo -n "."
 done
 echo
-echo -e "${BOLDMAGENTA}Sending all processes the SIGTERM signal.${COLOR_RESET}"
+echo "${BOLDMAGENTA}Sending all processes the SIGTERM signal.${COLOR_RESET}"
 killall5 -15
 echo -n "Waiting for processes to terminate"
 for loop in 0 1 2 3 4 5 ; do
@@ -100,7 +100,7 @@ for loop in 0 1 2 3 4 5 ; do
   echo -n "."
 done
 echo
-echo -e "${BOLDMAGENTA}Sending all processes the SIGKILL signal.${COLOR_RESET}"
+echo "${BOLDMAGENTA}Sending all processes the SIGKILL signal.${COLOR_RESET}"
 killall5 -9
 echo -n "Waiting for processes to exit"
 for loop in 0 1 2 3 4 5 ; do
@@ -110,6 +110,6 @@ done
 echo
 
 # Now go to the single user level
-echo -e "${BOLDYELLOW}Going to single user mode.${COLOR_RESET}"
+echo "${BOLDYELLOW}Going to single user mode.${COLOR_RESET}"
 telinit -t 1 1
 
