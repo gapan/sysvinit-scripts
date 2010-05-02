@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/dash
 #
 # rc.K 		This file is executed by init when it goes into runlevel
 #		1, which is the administrative state. It kills all
@@ -48,22 +48,22 @@ fi
 
 # Run any local shutdown scripts:
 if [ -x /etc/rc.d/rc.local_shutdown ]; then
-  /etc/rc.d/rc.local_shutdown stop
+  /bin/dash /etc/rc.d/rc.local_shutdown stop
 fi
 
 # Stop the Apache web server:
 if [ -x /etc/rc.d/rc.httpd ]; then
-  /etc/rc.d/rc.httpd stop
+  /bin/dash /etc/rc.d/rc.httpd stop
 fi
 
 # Stop the Samba server:
 if [ -x /etc/rc.d/rc.samba ]; then
-  . /etc/rc.d/rc.samba stop
+  /bin/dash /etc/rc.d/rc.samba stop
 fi
 
 # Shut down the NFS server:
 if [ -x /etc/rc.d/rc.nfsd ]; then
-  /etc/rc.d/rc.nfsd stop
+  /bin/dash /etc/rc.d/rc.nfsd stop
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
@@ -72,14 +72,14 @@ umount -a -r -t nfs,smbfs,cifs
 
 # Shut down PCMCIA devices:
 if [ -x /etc/rc.d/rc.pcmcia ] ; then
-  . /etc/rc.d/rc.pcmcia stop
+  /bin/dash /etc/rc.d/rc.pcmcia stop
   # The cards might need a little extra time here to deactivate:
   sleep 5
 fi
 
 # Terminate acpid before syslog:
 if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
-  . /etc/rc.d/rc.acpid stop
+  /bin/dash /etc/rc.d/rc.acpid stop
 fi
 
 # Kill all processes.

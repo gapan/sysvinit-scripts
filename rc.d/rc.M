@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 #
 # rc.M		This file is executed by init(8) when the system is being
 #		initialized for one of the "multi user" run levels (i.e.
