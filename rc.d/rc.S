@@ -67,49 +67,9 @@ if [ -r /etc/lvmtab -o -d /etc/lvm/backup ]; then
   fi
 fi
 
-# Open any volumes created by cryptsetup:
-if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
-  # First, check for device-mapper support.
-  if ! grep -wq device-mapper /proc/devices ; then
-    # If device-mapper exists as a module, try to load it.
-    # Try to load a device-mapper kernel module:
-    /sbin/modprobe -q dm-mod
-  fi
-  # NOTE: we only support LUKS formatted volumes (except for swap)!
-  cat /etc/crypttab | grep -v "^#" | grep -v "^$" | while read line; do
-    eval LUKSARRAY=( $line )
-    LUKS="${LUKSARRAY[0]}"
-    DEV="${LUKSARRAY[1]}"
-    PASS="${LUKSARRAY[2]}"
-    OPTS="${LUKSARRAY[3]}"
-    LUKSOPTS=""
-    if echo $OPTS | grep -wq ro ; then LUKSOPTS="${LUKSOPTS} --readonly" ; fi
-
-    # Skip LUKS volumes that were already unlocked (in the initrd):
-    /sbin/cryptsetup status $LUKS 1>/dev/null 2>/dev/null && continue
-    if /sbin/cryptsetup isLuks $DEV 2>/dev/null ; then
-      echo "Unlocking LUKS crypt volume '${LUKS}' on device '$DEV':"
-      if [ -n "${PASS}" ]; then
-        if [ -f ${PASS} ]; then
-          /sbin/cryptsetup ${LUKSOPTS} --key-file=${PASS} luksOpen $DEV $LUKS
-        elif [ "${PASS}" != "none" ]; then
-          # A password field of 'none' indicates a line for swap:
-          echo "${PASS}" | /sbin/cryptsetup ${LUKSOPTS} luksOpen $DEV $LUKS
-        fi
-      else
-        for i in seq 1 3 ; do
-          /sbin/cryptsetup ${LUKSOPTS} luksOpen $DEV $LUKS </dev/tty0 >/dev/tty0 2>&1
-          [ $? -eq 0 ] && break
-        done
-      fi
-    elif echo $OPTS | grep -wq swap ; then
-      # If any of the volumes is to be used as encrypted swap,
-      # then encrypt it using a random key and run mkswap:
-      echo "Creating encrypted swap on device '$DEV' mapped to '${LUKS}':"
-      /sbin/cryptsetup --cipher=aes --key-file=/dev/urandom --key-size=256 create $LUKS $DEV
-      mkswap /dev/mapper/$LUKS
-    fi
-  done
+# Run cryptsetup
+if [ -x /etc/rc.d/rc.cryptsetup ]; then
+	/bin/bash /etc/rc.d/rc.cryptsetup
 fi
 
 # Enable swapping:
