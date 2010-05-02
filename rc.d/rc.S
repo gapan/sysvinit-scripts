@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 #
 # /etc/rc.d/rc.S:  System initialization script.
 #
@@ -41,7 +41,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      /bin/bash /etc/rc.d/rc.udev start
     fi
   fi
 fi
@@ -78,7 +78,7 @@ echo "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
 
 # Start FUSE, if requested:
 if [ -x /etc/rc.d/rc.fuse ]; then
-  /bin/sh /etc/rc.d/rc.fuse start
+  /bin/bash /etc/rc.d/rc.fuse start
 fi
 
 # Set the system time from the hardware clock using hwclock --hctosys.
@@ -242,16 +242,16 @@ fi
 # it that you need.
 if [ -x /etc/rc.d/rc.modules.local -a -r /proc/modules ]; then
   echo "Running /etc/rc.d/rc.modules.local:"
-  /bin/sh /etc/rc.d/rc.modules.local
+  /bin/dash /etc/rc.d/rc.modules.local
 elif [ -x /etc/rc.d/rc.modules-$(uname -r) -a -r /proc/modules ]; then
   echo "Running /etc/rc.d/rc.modules-$(uname -r):"
-  /bin/sh /etc/rc.d/rc.modules-$(uname -r)
+  /bin/dash /etc/rc.d/rc.modules-$(uname -r)
 elif [ -x /etc/rc.d/rc.modules -a -r /proc/modules -a -L /etc/rc.d/rc.modules ]; then
   echo "Running /etc/rc.d/rc.modules -> $(readlink /etc/rc.d/rc.modules):"
-  /bin/sh /etc/rc.d/rc.modules
+  /bin/dash /etc/rc.d/rc.modules
 elif [ -x /etc/rc.d/rc.modules -a -r /proc/modules ]; then
   echo "Running /etc/rc.d/rc.modules:"
-  /bin/sh /etc/rc.d/rc.modules
+  /bin/dash /etc/rc.d/rc.modules
 fi
 
 # Configure runtime kernel parameters:
@@ -329,7 +329,7 @@ fi
 
 # If there are SystemV init scripts for this runlevel, run them.
 if [ -x /etc/rc.d/rc.sysvinit ]; then
-  /bin/sh /etc/rc.d/rc.sysvinit
+  /bin/dash /etc/rc.d/rc.sysvinit
 fi
 
 # Run serial port setup script:
@@ -337,7 +337,7 @@ fi
 # set up correctly.  If this happens, you may have to edit the file from a
 # boot disk, and/or set it as non-executable:
 if [ -x /etc/rc.d/rc.serial ]; then
-  /bin/sh /etc/rc.d/rc.serial start
+  /bin/bash /etc/rc.d/rc.serial start
 fi
 
 # Carry an entropy pool between reboots to improve randomness.
