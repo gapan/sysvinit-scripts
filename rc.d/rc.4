@@ -20,8 +20,12 @@ echo -e "${BOLDGREEN}Starting up X11 session manager...${COLOR_RESET}"
 if [ -x /usr/sbin/lxdm ]; then
   exec /usr/sbin/lxdm
 fi
+# or maybe in /usr/bin ?
+if [ -x /usr/bin/lxdm ]; then
+  exec /usr/bin/lxdm
+fi
 
-# Theny tru slim
+# Then tru slim
 if [ -x /usr/bin/slim ]; then
   exec /usr/bin/slim
 fi
