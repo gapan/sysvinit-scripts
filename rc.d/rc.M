@@ -124,6 +124,11 @@ if [ -x /etc/rc.d/rc.messagebus ]; then
   /bin/sh /etc/rc.d/rc.messagebus start
 fi
 
+# Start console-kit-daemon:
+if [ -x /etc/rc.d/rc.consolekit ]; then
+  /bin/sh /etc/rc.d/rc.consolekit start
+fi
+
 # Start HAL:
 if [ -x /etc/rc.d/rc.hald ]; then
   /bin/sh /etc/rc.d/rc.hald start
@@ -210,10 +215,10 @@ fi
 
 # Start crond (Dillon's crond):
 # If you want cron to actually log activity to /var/log/cron, then change
-# -l10 to -l8 to increase the logging level.
+# -l notice to -l info to increase the logging level.
 if [ -x /usr/sbin/crond ]; then
   echo -e "${BOLDWHITE}Starting the cron scheduling daemon:${COLOR_RESET}"
-  /usr/sbin/crond -l10 >>/var/log/cron 2>&1
+  /usr/sbin/crond -l notice
 fi
 
 # Start atd (manages jobs scheduled with 'at'):

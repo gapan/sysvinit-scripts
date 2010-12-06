@@ -306,12 +306,10 @@ if [ ! -r /etc/fastboot ]; then
   /sbin/fsck $FORCEFSCK -C -R -A -a
 fi
 
-# Mount usbfs:
+# Mount usbfs only if it is found in /etc/fstab:
 if grep -wq usbfs /proc/filesystems; then
   if ! grep -wq usbfs /proc/mounts ; then
-    if ! grep -wq usbfs /etc/fstab; then
-      /sbin/mount -v usbfs /proc/bus/usb -t usbfs
-    else
+    if grep -wq usbfs /etc/fstab; then
       /sbin/mount -v /proc/bus/usb
     fi
   fi

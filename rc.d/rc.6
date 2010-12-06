@@ -195,12 +195,6 @@ echo -e "${BOLDCYAN}Turning off swap.${COLOR_RESET}"
 /sbin/swapoff -a
 /bin/sync
 
-# Umount any LVM volumes:
-if /bin/mount | /bin/grep -q '^/dev/mapper/' ; then
-  echo -e "${BOLDCYAN}Unmounting LVM volumes.${COLOR_RESET}"
-  /bin/umount -v $(/bin/mount | /bin/grep '^/dev/mapper/' | /bin/cut -d ' ' -f 3 | /bin/tac)
-fi
-
 echo -e "${BOLDCYAN}Unmounting local file systems.${COLOR_RESET}"
 /bin/umount -v -a -t no,proc,sysfs
 
