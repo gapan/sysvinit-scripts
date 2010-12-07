@@ -42,10 +42,11 @@ if [ -x /usr/sbin/gdm ]; then
 fi
 
 # Not there?  OK, try to use KDE's kdm session manager:
-if [ -x /opt/kde/bin/kdm ]; then
-  exec /opt/kde/bin/kdm -nodaemon
-elif [ -x /usr/bin/kdm ]; then
+
+if [ -x /usr/bin/kdm ]; then
   exec /usr/bin/kdm -nodaemon
+elif [ -x /opt/kde/bin/kdm ]; then
+  exec /opt/kde/bin/kdm -nodaemon
 fi
 
 # If all you have is XDM, I guess it will have to do:
