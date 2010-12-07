@@ -162,9 +162,11 @@ fi
 # Start the print spooling system.  This will usually be LPRng (lpd) or CUPS.
 if [ -x /etc/rc.d/rc.cups ]; then
   # Start CUPS:
+  echo -e "${BOLDWHITE}Starting the print spooling system:${COLOR_RESET}"
   /etc/rc.d/rc.cups start
 elif [ -x /etc/rc.d/rc.lprng ]; then
   # Start LPRng (lpd):
+  echo -e "${BOLDWHITE}Starting the print spooling system:${COLOR_RESET}"
   . /etc/rc.d/rc.lprng start
 fi
 
@@ -271,11 +273,13 @@ fi
 
 # Load ALSA (sound) defaults:
 if [ -x /etc/rc.d/rc.alsa ]; then
+  echo -e "${BOLDWHITE}Configuring ALSA:${COLOR_RESET}"
   . /etc/rc.d/rc.alsa
 fi
 
 # Load a custom keymap if the user has an rc.keymap script.
 if [ -x /etc/rc.d/rc.keymap ]; then
+  echo -e "${BOLDWHITE}Loading default keyboard map:${COLOR_RESET}"
   . /etc/rc.d/rc.keymap
 fi
 
@@ -335,6 +339,7 @@ sleep 25 && {
 
 # Start the local setup procedure.
 if [ -x /etc/rc.d/rc.local ]; then
+  echo -e "${BOLDBLUE}Running local startup commands.${COLOR_RESET}"
   . /etc/rc.d/rc.local
 fi
 

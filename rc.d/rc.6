@@ -63,6 +63,7 @@ fi
 
 # Run any local shutdown scripts:
 if [ -x /etc/rc.d/rc.local_shutdown ]; then
+  echo -e "${BOLDWHITE}Running local shutdown commands...${COLOR_RESET}"
   /etc/rc.d/rc.local_shutdown stop
 fi
 
