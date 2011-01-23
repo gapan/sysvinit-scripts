@@ -86,7 +86,7 @@ if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
     if echo $OPTS | grep -wq ro ; then LUKSOPTS="${LUKSOPTS} --readonly" ; fi
 
     # Skip LUKS volumes that were already unlocked (in the initrd):
-    /sbin/cryptsetup status $LUKS 1>/dev/null 2>/dev/null && continue
+    /sbin/cryptsetup status $LUKS 2>/dev/null | head -n 1 | grep -q "is active" && continue
     if /sbin/cryptsetup isLuks $DEV 2>/dev/null ; then
       echo "Unlocking LUKS crypt volume '${LUKS}' on device '$DEV':"
       if [ -n "${PASS}" ]; then
