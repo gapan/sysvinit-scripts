@@ -67,6 +67,13 @@ if [ -x /etc/rc.d/rc.nfsd ]; then
   /etc/rc.d/rc.nfsd stop
 fi
 
+# Kill any processes (typically gam) that would otherwise prevent
+# unmounting NFS volumes:
+for dir in $(/bin/mount | grep 'type nfs' | cut -d ' ' -f 3 ) ; do
+  echo "Killing processes holding NFS mount $dir open..."
+  /usr/bin/fuser -k -m $dir
+done
+
 # Unmount any NFS, SMB, or CIFS filesystems:
 echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
 umount -a -r -t nfs,smbfs,cifs

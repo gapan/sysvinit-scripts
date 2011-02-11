@@ -46,6 +46,16 @@ if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   fi
 fi
 
+# Mount Control Groups filesystem interface:
+if grep -wq cgroup /proc/filesystems ; then
+  if [ -d /sys/fs/cgroup ]; then
+    mount -t cgroup cgroup /sys/fs/cgroup
+  else
+    mkdir -p /dev/cgroup
+    mount -t cgroup cgroup /dev/cgroup
+  fi
+fi
+
 # Initialize the Logical Volume Manager.
 # This won't start unless we find /etc/lvmtab (LVM1) or
 # /etc/lvm/backup/ (LVM2).  This is created by /sbin/vgscan, so to
