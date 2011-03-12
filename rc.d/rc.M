@@ -32,6 +32,17 @@ else
   /bin/hostname darkstar
 fi
 
+# Set the permissions on /var/log/dmesg according to whether the kernel
+# permits non-root users to access kernel dmesg information:
+if [ -r /proc/sys/kernel/dmesg_restrict ]; then
+  if [ $(cat /proc/sys/kernel/dmesg_restrict) = 1 ]; then
+    touch /var/log/dmesg
+    chmod 640 /var/log/dmesg
+  fi
+else
+  touch /var/log/dmesg
+  chmod 644 /var/log/dmesg
+fi
 # Save the contents of 'dmesg':
 /bin/dmesg -s 65536 > /var/log/dmesg
 
