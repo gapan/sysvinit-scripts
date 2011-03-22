@@ -10,6 +10,7 @@ blacklist = [ '.conf', \
 		'rc.acpid', \
 		'rc.alsa', \
 		'rc.atalk', \
+		'rc.autofs', \
 		'rc.bind', \
 		'rc.bluetooth', \
 		'rc.cups', \

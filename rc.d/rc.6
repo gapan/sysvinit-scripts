@@ -116,7 +116,7 @@ done
 
 # Unmount any NFS, SMB, or CIFS filesystems:
 echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
-/bin/umount -v -a -r -t nfs,smbfs,cifs
+/bin/umount -v -a -f -r -t nfs,smbfs,cifs
 
 # Try to shut down pppd:
 PS="$(ps ax)"

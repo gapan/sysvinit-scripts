@@ -76,7 +76,7 @@ done
 
 # Unmount any NFS, SMB, or CIFS filesystems:
 echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
-umount -a -r -t nfs,smbfs,cifs
+umount -a -f -r -t nfs,smbfs,cifs
 
 # Shut down PCMCIA devices:
 if [ -x /etc/rc.d/rc.pcmcia ] ; then

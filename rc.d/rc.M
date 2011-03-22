@@ -104,7 +104,10 @@ fi
 # Mount any additional filesystem types that haven't already been mounted:
 mount -a -v 2> /dev/null | grep -v "already mounted"
 
-
+# Start the Control Script for automounter:
+if [ -x /etc/rc.d/rc.autofs ]; then
+  sh /etc/rc.d/rc.autofs start
+fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
 /bin/rm -f /var/lock/* /var/spool/uucp/LCK..* /tmp/.X*lock /tmp/core /core 2> /dev/null
