@@ -61,12 +61,7 @@ c3:12345:respawn:/sbin/agetty 38400 tty3 linux
 #d1:12345:respawn:/sbin/agetty -mt60 38400,19200,9600,2400,1200 ttyS0 vt100
 #d2:12345:respawn:/sbin/agetty -mt60 38400,19200,9600,2400,1200 ttyS1 vt100
 
-# Runlevel 4 used to be for an X window only system, until we discovered
-# that it throws init into a loop that keeps your load avg at least 1 all 
-# the time. Thus, there is now one getty opened on tty6. Hopefully no one
-# will notice. ;^)
-# It might not be bad to have one text console anyway, in case something 
-# happens to X.
+# Runlevel 4 also starts /etc/rc.d/rc.4 to run a display manager for X.
 x1:4:respawn:/etc/rc.d/rc.4
 
 # End of /etc/inittab
