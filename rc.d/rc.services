@@ -49,6 +49,7 @@ blacklist = [ '.conf', \
 		'rc.sendmail', \
 		'rc.serial', \
 		'rc.services', \
+		'rc.shorewall', \
 		'rc.snmpd', \
 		'rc.sshd', \
 		'rc.syslog', \
