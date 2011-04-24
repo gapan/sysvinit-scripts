@@ -28,6 +28,11 @@ if [ -d /sys ]; then
   fi
 fi
 
+# Load the loop device kernel module:
+if [ -x /etc/rc.d/rc.loop ]; then
+  . /etc/rc.d/rc.loop start
+fi
+
 # Initialize udev to manage /dev entries and hotplugging for 2.6.x kernels.
 # You may turn off udev by making the /etc/rc.d/rc.udev file non-executable
 # or giving the "nohotplug" option at boot, but in the 2.6.x+ kernels udev

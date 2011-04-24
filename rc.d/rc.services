@@ -30,6 +30,7 @@ blacklist = [ '.conf', \
 		'rc.keymap', \
 		'rc.licences', \
 		'rc.local', \
+		'rc.loop', \
 		'rc.lprng', \
 		'rc.M', \
 		'rc.messagebus', \
