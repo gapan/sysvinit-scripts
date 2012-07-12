@@ -153,9 +153,11 @@ if [ -x /etc/rc.d/rc.bluetooth ]; then
   /bin/sh /etc/rc.d/rc.bluetooth start
 fi
 
-# Start wicd:
+# Start wicd or networkmanager:
 if [ -x /etc/rc.d/rc.wicd ]; then
   . /etc/rc.d/rc.wicd start
+elif [ -x /etc/rc.d/rc.networkmanager ]; then
+  .  /etc/rc.d/rc.networkmanager start
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
