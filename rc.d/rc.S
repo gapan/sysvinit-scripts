@@ -28,6 +28,14 @@ if [ -d /sys ]; then
   fi
 fi
 
+# If /run exists, mount a tmpfs on it (unless the
+# initrd has already done so):
+if [ -d /run ]; then
+  if ! grep -wq "tmpfs /run tmpfs" /proc/mounts ; then
+    /sbin/mount -v -n -t tmpfs tmpfs /run -o mode=0755
+  fi
+fi
+
 # Load the loop device kernel module:
 if [ -x /etc/rc.d/rc.loop ]; then
   . /etc/rc.d/rc.loop start
