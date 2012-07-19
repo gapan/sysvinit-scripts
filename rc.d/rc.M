@@ -143,11 +143,6 @@ if [ -x /etc/rc.d/rc.consolekit ]; then
   /bin/sh /etc/rc.d/rc.consolekit start
 fi
 
-# Start HAL:
-if [ -x /etc/rc.d/rc.hald ]; then
-  /bin/sh /etc/rc.d/rc.hald start
-fi
-
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
   /bin/sh /etc/rc.d/rc.bluetooth start
