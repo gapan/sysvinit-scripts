@@ -36,6 +36,7 @@ blacklist = [ '.conf', \
 		'rc.messagebus', \
 		'rc.modules', \
 		'rc.mysqld', \
+		'rc.networkmanager', \
 		'rc.nfsd', \
 		'rc.ntpd', \
 		'rc.numlock', \
