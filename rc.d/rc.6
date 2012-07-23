@@ -168,6 +168,11 @@ if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
   . /etc/rc.d/rc.acpid stop
 fi
 
+# Stop udev:
+if [ -x /etc/rc.d/rc.udev ]; then
+  sh /etc/rc.d/rc.udev force-stop
+fi
+
 # Kill all processes.
 # INIT is supposed to handle this entirely now, but this didn't always
 # work correctly without this second pass at killing off the processes.
