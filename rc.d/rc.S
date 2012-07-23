@@ -152,12 +152,13 @@ if [ -x /sbin/hwclock ]; then
     CLOCK_OPT="--directisa"
   fi
   if grep -wq "^UTC" /etc/hardwareclock ; then
-    echo -e "${BOLDRED}Setting system time from the hardware clock (UTC).${COLOR_RESET}"
+    echo -n -e "${BOLDRED}Setting system time from the hardware clock (UTC): ${COLOR_RESET}"
     /sbin/hwclock $CLOCK_OPT --utc --hctosys
   else
-    echo -e "${BOLDWHITE}Setting system time from the hardware clock (localtime).${COLOR_RESET}"
+    echo -n -e "${BOLDWHITE}Setting system time from the hardware clock (localtime): ${COLOR_RESET}"
     /sbin/hwclock $CLOCK_OPT --localtime --hctosys
   fi
+  date
 fi
 
 # Test to see if the root partition is read-only, like it ought to be.
