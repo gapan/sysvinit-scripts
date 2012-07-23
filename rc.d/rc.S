@@ -275,10 +275,18 @@ fi # Done checking root filesystem
 echo -e "${BOLDCYAN}Creating /etc/mtab.${COLOR_RESET}"
 /sbin/mount -w -o remount /
 
-# Read in the correct / filesystem complete with arguments so mount will
-# show them correctly. This does not stop those arguments from functioning
-# but does prevent a small bug with /etc/mtab.
-/bin/grep ' / ' /proc/mounts | grep -v "^rootfs" > /etc/mtab
+# Start a new /etc/mtab containing the correct root partition.  The kernel's
+# provided /proc/mounts may contain a couple of incorrect entries, including
+# "rootfs / rootfs rw 0 0" as well # as the use of "/dev/root" instead of the
+# true root partition listed in /etc/fstab when booting without an initrd.
+# Using /etc/mtab instead of a symlink to /proc/mounts enables making these
+# corrections, which is a good thing.
+if /bin/grep -w / /proc/mounts | grep -v "^rootfs" | grep -wq /dev/root ; then
+  TRUE_ROOT_DEVICE="$(grep -v "^#" /etc/fstab | grep -w / | cut -f 1 | cut -f 1 -d ' ')"
+  /bin/grep -w / /proc/mounts | grep -v "^rootfs" | sed -e "s,/dev/root,${TRUE_ROOT_DEVICE},g" > /etc/mtab
+else # /proc/partitions doesn't use /dev/root for /
+  /bin/grep -w / /proc/mounts | grep -v "^rootfs" > /etc/mtab
+fi
 
 # Fix /etc/mtab to list sys and proc if they were not yet entered in
 # /etc/mtab because / was still mounted read-only:
