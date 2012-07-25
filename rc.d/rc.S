@@ -281,11 +281,17 @@ echo -e "${BOLDCYAN}Creating /etc/mtab.${COLOR_RESET}"
 # true root partition listed in /etc/fstab when booting without an initrd.
 # Using /etc/mtab instead of a symlink to /proc/mounts enables making these
 # corrections, which is a good thing.
-if /bin/grep -w / /proc/mounts | grep -v "^rootfs" | grep -wq /dev/root ; then
-  TRUE_ROOT_DEVICE="$(grep -v "^#" /etc/fstab | grep -w / | cut -f 1 | cut -f 1 -d ' ')"
-  /bin/grep -w / /proc/mounts | grep -v "^rootfs" | sed -e "s,/dev/root,${TRUE_ROOT_DEVICE},g" > /etc/mtab
+if /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" | grep -wq /dev/root ; then
+  TRUE_ROOT_DEVICE="$(grep -v "^#" /etc/fstab | grep -w / | grep -v // | cut -f 1 | cut -f 1 -d ' ')"
+  # Sanity check.  Make sure that what we've indentified as the root partition
+  # actually exists in /dev before using it:
+  if [ -r "$TRUE_ROOT_DEVICE" ]; then
+    /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" | sed -e "s,/dev/root,${TRUE_ROOT_DEVICE},g" > /etc/mtab
+  else # better just go with what's in /proc/mounts
+    /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" > /etc/mtab
+  fi
 else # /proc/partitions doesn't use /dev/root for /
-  /bin/grep -w / /proc/mounts | grep -v "^rootfs" > /etc/mtab
+  /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" > /etc/mtab
 fi
 
 # Fix /etc/mtab to list sys and proc if they were not yet entered in
