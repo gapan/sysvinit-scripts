@@ -49,9 +49,9 @@ pf::powerfail:/sbin/genpowerfail start
 pg::powerokwait:/sbin/genpowerfail stop
 
 # These are the standard console login getties in multiuser mode:
-c1:12345:respawn:/sbin/agetty 38400 tty1 linux
-c2:12345:respawn:/sbin/agetty 38400 tty2 linux
-c3:12345:respawn:/sbin/agetty 38400 tty3 linux
+c1:12345:respawn:/sbin/agetty --noclear 38400 tty1 linux
+c2:12345:respawn:/sbin/agetty --noclear 38400 tty2 linux
+c3:12345:respawn:/sbin/agetty --noclear 38400 tty3 linux
 
 # Local serial lines:
 #s1:12345:respawn:/sbin/agetty -L ttyS0 9600 vt100
