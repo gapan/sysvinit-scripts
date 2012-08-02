@@ -269,33 +269,13 @@ else
   read junk;
 fi # Done checking root filesystem
 
-# Any /etc/mtab that exists here is old, so we delete it to start over:
-/bin/rm -f /etc/mtab*
-# Remounting the / partition will initialize the new /etc/mtab:
-echo -e "${BOLDCYAN}Creating /etc/mtab.${COLOR_RESET}"
-/sbin/mount -w -o remount /
+# Any /etc/mtab that exists here is old, so we start with a new one:
+/bin/rm -f /etc/mtab{,~,.tmp} && /bin/touch /etc/mtab
 
-# Start a new /etc/mtab containing the correct root partition.  The kernel's
-# provided /proc/mounts may contain a couple of incorrect entries, including
-# "rootfs / rootfs rw 0 0" as well # as the use of "/dev/root" instead of the
-# true root partition listed in /etc/fstab when booting without an initrd.
-# Using /etc/mtab instead of a symlink to /proc/mounts enables making these
-# corrections, which is a good thing.
-if /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" | grep -wq /dev/root ; then
-  TRUE_ROOT_DEVICE="$(grep -v "^#" /etc/fstab | grep -w / | grep -v // | cut -f 1 | cut -f 1 -d ' ')"
-  # Sanity check.  Make sure that what we've indentified as the root partition
-  # actually exists in /dev before using it:
-  if [ -r "$TRUE_ROOT_DEVICE" ]; then
-    /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" | sed -e "s,/dev/root,${TRUE_ROOT_DEVICE},g" > /etc/mtab
-  else # better just go with what's in /proc/mounts
-    /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" > /etc/mtab
-  fi
-else # /proc/partitions doesn't use /dev/root for /
-  /bin/grep -w / /proc/mounts | grep -v // | grep -v "^rootfs" > /etc/mtab
-fi
+# Add entry for / to /etc/mtab:
+/sbin/mount -f -w /
 
-# Fix /etc/mtab to list sys and proc if they were not yet entered in
-# /etc/mtab because / was still mounted read-only:
+# Add /proc and /sys mounts to /etc/mtab:
 if [ -d /proc/sys ]; then
   /sbin/mount -f proc /proc -t proc
 fi
