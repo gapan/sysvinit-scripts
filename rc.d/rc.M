@@ -78,10 +78,12 @@ fi
 
 # If we are returning from single-user mode we will need to restart
 # udevd on systems that use udev:
-if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
-  if ! grep -wq nohotplug /proc/cmdline ; then
-    if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+if [ "$(/sbin/runlevel | cut -d ' ' -f 1)" == "1" ]; then
+  if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
+    if ! grep -wq nohotplug /proc/cmdline ; then
+      if [ -x /etc/rc.d/rc.udev ]; then
+        /bin/sh /etc/rc.d/rc.udev start
+      fi
     fi
   fi
 fi
@@ -183,7 +185,7 @@ fi
 
 # Start netatalk. (a file/print server for Macs using Appletalk)
 if [ -x /etc/rc.d/rc.atalk ]; then
-  /etc/rc.d/rc.atalk
+  /etc/rc.d/rc.atalk start
 fi
 
 # Start smartd, which monitors the status of S.M.A.R.T. compatible

@@ -120,10 +120,7 @@ if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
           echo "${PASS}" | /sbin/cryptsetup ${LUKSOPTS} luksOpen $DEV $LUKS
         fi
       else
-        for i in seq 1 3 ; do
-          /sbin/cryptsetup ${LUKSOPTS} luksOpen $DEV $LUKS </dev/tty0 >/dev/tty0 2>&1
-          [ $? -eq 0 ] && break
-        done
+        /sbin/cryptsetup ${LUKSOPTS} luksOpen $DEV $LUKS </dev/tty0 >/dev/tty0 2>&1
       fi
     elif echo $OPTS | grep -wq swap ; then
       # If any of the volumes is to be used as encrypted swap,
