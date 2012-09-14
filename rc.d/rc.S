@@ -41,16 +41,14 @@ if [ -x /etc/rc.d/rc.loop ]; then
   . /etc/rc.d/rc.loop start
 fi
 
-# Initialize udev to manage /dev entries and hotplugging for 2.6.x kernels.
+# Initialize udev to manage /dev entries and hotplugging for 3.x kernels.
 # You may turn off udev by making the /etc/rc.d/rc.udev file non-executable
-# or giving the "nohotplug" option at boot, but in the 2.6.x+ kernels udev
-# has taken over the job of hotplug (finding hardware and loading the kernel
-# modules for it, as well as creating device nodes in /dev).  Realize that
-# if you turn off udev that you will have to load all the kernel modules
-# that you need yourself (possibly in /etc/rc.d/rc.modules, which does not
-# promise to list all of them), and make any additional device nodes that you
-# need in the /dev directory.  Even USB and IEEE1394 devices will need to have
-# the modules loaded by hand if udev is not used with a 2.6 kernel.  So use it.  :-)
+# or giving the "nohotplug" option at boot, but realize that if you turn off
+# udev that you will have to load all the kernel modules that you need
+# yourself (possibly in /etc/rc.d/rc.modules, which does not promise to list
+# all of them), and make any additional device nodes that you need in the
+# /dev directory.  Even USB and IEEE1394 devices will need to have the
+# modules loaded by hand if udev is not used.  So use it.  :-)
 if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
