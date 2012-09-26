@@ -150,7 +150,7 @@ if [ -x /etc/rc.d/rc.bluetooth ]; then
 fi
 
 # Start wicd or networkmanager:
-if [ -x /etc/rc.d/rc.wicd ]; then
+if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
   . /etc/rc.d/rc.wicd start
 elif [ -x /etc/rc.d/rc.networkmanager ]; then
   .  /etc/rc.d/rc.networkmanager start
