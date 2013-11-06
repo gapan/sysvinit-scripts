@@ -79,7 +79,7 @@ fi
 # Run rc.udev again.  This will start udev if it is not already running
 # (for example, upon return from runlevel 1), otherwise it will trigger it
 # to look for device changes and to generate persistent rules if needed.
-if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems ; then
+if grep -wq sysfs /proc/mounts && grep -q devtmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
       /bin/sh /etc/rc.d/rc.udev start
@@ -112,6 +112,7 @@ fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
 /bin/rm -f /var/lock/* /var/spool/uucp/LCK..* /tmp/.X*lock /tmp/core /core 2> /dev/null
+/bin/rm -rf /var/spool/cron/cron.?????? 2> /dev/null
 
 # Remove stale hunt sockets so the game can start.
 if [ -r /tmp/hunt -o -r /tmp/hunt.stats ]; then
@@ -186,6 +187,9 @@ fi
 if [ -x /etc/rc.d/rc.atalk ]; then
   /etc/rc.d/rc.atalk start
 fi
+if [ -x /usr/bin/glib-compile-schemas ]; then
+  /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas >/dev/null 2>&1
+fi
 
 # Start smartd, which monitors the status of S.M.A.R.T. compatible
 # hard drives and reports any problems.  Note some devices (which aren't
@@ -194,16 +198,6 @@ fi
 #if [ -x /usr/sbin/smartd ]; then
 #  /usr/sbin/smartd
 #fi
-
-# If we're using udev, make /dev/cdrom and any other optical drive symlinks
-# if some udev rule hasn't made them already:
-if grep -wq sysfs /proc/mounts && grep -q tmpfs /proc/filesystems; then
-  if ! grep -wq nohotplug /proc/cmdline ; then
-    if [ -x /lib/udev/rc.optical-symlinks -a -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /lib/udev/rc.optical-symlinks
-    fi
-  fi
-fi
 
 # Monitor the UPS with genpowerd.
 # To use this, uncomment this section and edit your settings in
