@@ -13,6 +13,9 @@ blacklist = [ '.conf', \
 		'rc.autofs', \
 		'rc.bind', \
 		'rc.bluetooth', \
+		'rc.cgmanager', \
+		'rc.consolekit', \
+		'rc.cpufreq', \
 		'rc.cups', \
 		'rc.dnsmasq', \
 		'rc.famd', \
@@ -30,11 +33,13 @@ blacklist = [ '.conf', \
 		'rc.keymap', \
 		'rc.licences', \
 		'rc.local', \
+		'rc.local_shutdown' \
 		'rc.loop', \
 		'rc.lprng', \
 		'rc.M', \
 		'rc.messagebus', \
 		'rc.modules', \
+		'rc.modules.local', \
 		'rc.mysqld', \
 		'rc.networkmanager', \
 		'rc.nfsd', \
@@ -42,6 +47,7 @@ blacklist = [ '.conf', \
 		'rc.numlock', \
 		'rc.openldap', \
 		'rc.pcmcia', \
+		'rc.pulseaudio', \
 		'rc.rpc', \
 		'rc.S', \
 		'rc.samba', \
