@@ -34,10 +34,10 @@ echo -e "${BOLDBLUE}Running shutdown script $0.${COLOR_RESET}"
 # Find out how we were called.
 case "$0" in
 	*0)
-		command="halt"
+		shutdown_command="halt"
 		;;
 	*6)
-		command=reboot
+		shutdown_command=reboot
 		;;
 	*)
 		echo "$0: call me as \"rc.0\" or \"rc.6\" please!"
@@ -46,17 +46,31 @@ case "$0" in
 esac
 
 # Save the system time to the hardware clock using hwclock --systohc.
+# This will also create or update the timestamps in /etc/adjtime.
 if [ -x /sbin/hwclock ]; then
   # Check for a broken motherboard RTC clock (where ioports for rtc are
   # unknown) to prevent hwclock causing a hang:
-  if ! grep -q -w rtc /proc/ioports ; then
+  if ! grep -q " : rtc" /proc/ioports ; then
     CLOCK_OPT="--directisa"
   fi
-  if grep -q "^UTC" /etc/hardwareclock 2> /dev/null ; then
+  if [ /etc/adjtime -nt /etc/hardwareclock ]; then
+    if grep -q "^LOCAL" /etc/adjtime ; then
+      echo "Saving system time to the hardware clock (localtime)."
+    else
+      echo "Saving system time to the hardware clock (UTC)."
+    fi
+    /sbin/hwclock $CLOCK_OPT --systohc
+  elif grep -q "^UTC" /etc/hardwareclock 2> /dev/null ; then
     echo -e "${BOLDWHITE}Saving system time to the hardware clock (UTC).${COLOR_RESET}"
+    if [ ! -r /etc/adjtime ]; then
+      echo "Creating system time correction file /etc/adjtime."
+    fi
     /sbin/hwclock $CLOCK_OPT --utc --systohc
   else
     echo -e "${BOLDWHITE}Saving system time to the hardware clock (localtime).${COLOR_RESET}"
+    if [ ! -r /etc/adjtime ]; then
+      echo "Creating system time correction file /etc/adjtime."
+    fi
     /sbin/hwclock  $CLOCK_OPT --localtime --systohc
   fi
 fi
@@ -110,7 +124,7 @@ fi
 # Kill any processes (typically gam) that would otherwise prevent
 # unmounting NFS volumes:
 unset FUSER_DELAY
-for dir in $(/bin/mount | grep 'type nfs' | cut -d ' ' -f 3 ) ; do
+for dir in $(/bin/mount | grep 'type nfs ' | cut -d ' ' -f 3 ) ; do
   echo "Killing processes holding NFS mount $dir open..."
   # Background this to prevent fuser from also blocking shutdown:
   /usr/bin/fuser -k -m $dir &
@@ -122,8 +136,8 @@ if [ ! -z "$FUSER_DELAY" ]; then
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
-echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
-/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs
+echo -e "${BOLDCYAN}Unmounting remote filesystems:${COLOR_RESET}"
+/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g"
 
 # Try to shut down pppd:
 PS="$(ps ax)"
@@ -181,12 +195,13 @@ if [ -x /etc/rc.d/rc.udev ]; then
 fi
 
 # Kill all remaining processes.
+OMITPIDS="$(for p in $(pgrep mdmon); do echo -o $p; done)" # Don't kill mdmon
 if [ ! "$1" = "fast" ]; then
   echo "Sending all processes the SIGTERM signal."
-  /sbin/killall5 -15 
+  /sbin/killall5 -15 $OMITPIDS
   /bin/sleep 5
   echo "Sending all processes the SIGKILL signal."
-  /sbin/killall5 -9
+  /sbin/killall5 -9 $OMITPIDS
 fi
 
 # Try to turn off quota.
@@ -208,22 +223,23 @@ fi
 /bin/chmod 600 /etc/random-seed
 
 # Before unmounting file systems write a reboot or halt record to wtmp.
-$command -w
 
-# Clear /var/lock/subsys.
-if [ -d /var/lock/subsys ]; then
-  rm -f /var/lock/subsys/*
-fi
+$shutdown_command -w
 
 # Turn off swap:
 echo -e "${BOLDCYAN}Turning off swap.${COLOR_RESET}"
 /sbin/swapoff -a
 /bin/sync
 
-echo -e "${BOLDCYAN}Unmounting local file systems.${COLOR_RESET}"
-/bin/umount -v -a -t no,proc,sysfs
+# Stop cgmanager and cgproxy:
+if [ -x /etc/rc.d/rc.cgmanager ]; then
+  sh /etc/rc.d/rc.cgmanager stop
+fi
 
-echo -e "${BOLDCYAN}Remounting root filesystem read-only.${COLOR_RESET}"
+echo -e "${BOLDCYAN}Unmounting local file systems:${COLOR_RESET}"
+/bin/umount -v -a -t no,proc,sysfs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g" 2> /dev/null
+
+echo -e "${BOLDCYAN}Remounting root filesystem read-only:${COLOR_RESET}"
 /bin/mount -v -n -o remount,ro /
 
 # This never hurts:
@@ -287,7 +303,7 @@ fi
 
 # Now halt (poweroff with APM or ACPI enabled kernels) or reboot.
 echo
-if [ "$command" = "reboot" ]; then
+if [ "$shutdown_command" = "reboot" ]; then
   echo -e "${BOLDYELLOW}Rebooting.${COLOR_RESET}"
   /sbin/reboot
 else
