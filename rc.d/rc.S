@@ -41,14 +41,14 @@ if [ -x /etc/rc.d/rc.loop ]; then
   . /etc/rc.d/rc.loop start
 fi
 
-# Initialize udev to manage /dev entries and hotplugging for 3.x kernels.
+# Initialize udev to manage /dev entries and hotplugging.
 # You may turn off udev by making the /etc/rc.d/rc.udev file non-executable
 # or giving the "nohotplug" option at boot, but realize that if you turn off
 # udev that you will have to load all the kernel modules that you need
-# yourself (possibly in /etc/rc.d/rc.modules, which does not promise to list
-# all of them), and make any additional device nodes that you need in the
-# /dev directory.  Even USB and IEEE1394 devices will need to have the
-# modules loaded by hand if udev is not used.  So use it.  :-)
+# yourself (possibly in /etc/rc.d/rc.modules.local), and make any additional
+# device nodes that you need in the /dev directory.  Even USB and IEEE1394
+# devices will need to have the modules loaded by hand if udev is not used.
+# So use it.  :-)
 if grep -wq sysfs /proc/mounts && grep -q devtmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
@@ -75,6 +75,10 @@ if grep -wq cgroup /proc/filesystems ; then
     else
       # We can't use autodetection so fall back mounting them all together
       mount -t cgroup cgroup /sys/fs/cgroup
+    fi
+    # Start cgmanager (or cgproxy in a container):
+    if [ -x /etc/rc.d/rc.cgmanager ]; then
+      sh /etc/rc.d/rc.cgmanager start
     fi
   else
     mkdir -p /dev/cgroup
@@ -156,19 +160,41 @@ if [ -x /etc/rc.d/rc.fuse ]; then
   /bin/sh /etc/rc.d/rc.fuse start
 fi
 
+# Set the tick and frequency for the system clock.
+# Default values are: TICK=10000 and FREQ=0
+TICK=10000
+FREQ=0
+# If there's a /etc/default/adjtimex config file, source it to override
+# the default TICK and FREQ:
+if [ -r /etc/default/adjtimex ]; then
+  . /etc/default/adjtimex
+fi
+if /sbin/adjtimex --tick $TICK --frequency $FREQ; then
+  echo "Setting the system clock rate:  /sbin/adjtimex --tick $TICK --frequency $FREQ"
+else
+  echo "Failed to set system clock with adjtimex, possibly invalid parameters? (TICK=$TICK FREQ=$FREQ)"
+fi
+
 # Set the system time from the hardware clock using hwclock --hctosys.
 if [ -x /sbin/hwclock ]; then
   # Check for a broken motherboard RTC clock (where ioports for rtc are
   # unknown) to prevent hwclock causing a hang:
-  if ! grep -q -w rtc /proc/ioports ; then
+  if ! grep -q " : rtc" /proc/ioports ; then
     CLOCK_OPT="--directisa"
   fi
-  if grep -wq "^UTC" /etc/hardwareclock ; then
-    echo -n -e "${BOLDRED}Setting system time from the hardware clock (UTC): ${COLOR_RESET}"
-    /sbin/hwclock $CLOCK_OPT --utc --hctosys
-  else
-    echo -n -e "${BOLDWHITE}Setting system time from the hardware clock (localtime): ${COLOR_RESET}"
+  if [ /etc/adjtime -nt /etc/hardwareclock ]; then
+    if grep -q "^LOCAL" /etc/adjtime ; then
+      echo -n -e "${BOLDRED}Setting system time from the hardware clock (localtime): ${COLOR_RESET}"
+    else
+      echo -n -e "${BOLDRED}Setting system time from the hardware clock (UTC):  ${COLOR_RESET}"
+    fi
+    /sbin/hwclock $CLOCK_OPT --hctosys
+  elif grep -wq "^localtime" /etc/hardwareclock 2> /dev/null ; then
+    echo -n -e "${BOLDRED}Setting system time from the hardware clock (localtime): ${COLOR_RESET}"
     /sbin/hwclock $CLOCK_OPT --localtime --hctosys
+  else
+    echo -n -e "${BOLDRED}Setting system time from the hardware clock (UTC):  ${COLOR_RESET}"
+    /sbin/hwclock $CLOCK_OPT --utc --hctosys
   fi
   date
 fi
@@ -234,51 +260,20 @@ if [ ! $READWRITE = yes ]; then
   echo -e "${BOLDCYAN}Remounting root device with read-write enabled.${COLOR_RESET}"
   /sbin/mount -w -v -n -o remount /
   if [ $? -gt 0 ] ; then
-    echo
-    echo "Attempt to remount root device as read-write failed!  This is going to"
+    echo "FATAL:  Attempt to remount root device as read-write failed!  This is going to"
     echo "cause serious problems."
-    echo 
-    echo "If you're using the UMSDOS filesystem, you **MUST** mount the root partition"
-    echo "read-write!  You can make sure the root filesystem is getting mounted "
-    echo "read-write with the 'rw' flag to Loadlin:"
-    echo
-    echo "loadlin vmlinuz root=/dev/hda1 rw   (replace /dev/hda1 with your root device)"
-    echo
-    echo "Normal bootdisks can be made to mount a system read-write with the rdev command:"
-    echo
-    echo "rdev -R /dev/fd0 0"
-    echo
-    echo "You can also get into your system by using a boot disk with a command like this"
-    echo "on the LILO prompt line:  (change the root partition name as needed)"
-    echo 
-    echo "LILO: mount root=/dev/hda1 rw"
-    echo
-    echo "Please press ENTER to continue, then reboot and use one of the above methods to"
-    echo -n "get into your machine and start looking for the problem. " 
-    read junk; 
   fi
 else
   echo "Testing root filesystem status:  read-write filesystem"
   echo
-  echo "*** ERROR: Root partition has already been mounted read-write. Cannot check!"
+  echo "ERROR: Root partition has already been mounted read-write. Cannot check!"
   echo
   echo "For filesystem checking to work properly, your system must initially mount"
-  echo "the root partition as read only. Please modify your kernel with 'rdev' so that"
-  echo "it does this. If you're booting with LILO, add a line:"
+  echo "the root partition as read only.  If you're booting with LILO, add a line:"
   echo
   echo "   read-only"
   echo
   echo "to the Linux section in your /etc/lilo.conf and type 'lilo' to reinstall it."
-  echo
-  echo "If you boot from a kernel on a floppy disk, put it in the drive and type:"
-  echo "   rdev -R /dev/fd0 1"
-  echo
-  echo "If you boot from a bootdisk, or with Loadlin, you can add the 'ro' flag."
-  echo
-  echo "This will fix the problem *AND* eliminate this annoying message. :^)"
-  echo
-  echo -n "Press ENTER to continue. "
-  read junk;
 fi # Done checking root filesystem
 
 # Any /etc/mtab that exists here is old, so we start with a new one:
@@ -287,12 +282,15 @@ fi # Done checking root filesystem
 # Add entry for / to /etc/mtab:
 /sbin/mount -f -w /
 
-# Add /proc and /sys mounts to /etc/mtab:
+# Add /proc, /sys, and /dev/shm mounts to /etc/mtab:
 if [ -d /proc/sys ]; then
-  /sbin/mount -f proc /proc -t proc
+  /sbin/mount -f -t proc proc /proc
 fi
 if [ -d /sys/bus ]; then
-  /sbin/mount -f sysfs /sys -t sysfs
+  /sbin/mount -f -t sysfs sysfs /sys
+fi
+if grep -q '^[^ ]\+ /dev/shm ' /proc/mounts 2> /dev/null ; then
+  /sbin/mount -f -t tmpfs tmpfs /dev/shm
 fi
 
 # Configure ISA Plug-and-Play devices:
@@ -303,31 +301,21 @@ if [ -r /etc/isapnp.conf ]; then
   fi
 fi
 
-# This loads any kernel modules that are needed.  These might be required to
-# use your ethernet card, sound card, or other optional hardware.
-# Priority is given first to a script named "rc.modules.local", then
-# to "rc.modules-$FULL_KERNEL_VERSION", and finally to the plain "rc.modules".
-# Note that if /etc/rc.d/rc.modules.local is found, then that will be the ONLY
-# rc.modules script the machine will run, so make sure it has everything in
-# it that you need.
-if [ -x /etc/rc.d/rc.modules.local -a -r /proc/modules ]; then
-  echo "Running /etc/rc.d/rc.modules.local:"
-  /bin/sh /etc/rc.d/rc.modules.local
-elif [ -x /etc/rc.d/rc.modules-$(uname -r) -a -r /proc/modules ]; then
-  echo "Running /etc/rc.d/rc.modules-$(uname -r):"
-  /bin/sh /etc/rc.d/rc.modules-$(uname -r)
-elif [ -x /etc/rc.d/rc.modules -a -r /proc/modules -a -L /etc/rc.d/rc.modules ]; then
-  echo "Running /etc/rc.d/rc.modules -> $(readlink /etc/rc.d/rc.modules):"
-  /bin/sh /etc/rc.d/rc.modules
-elif [ -x /etc/rc.d/rc.modules -a -r /proc/modules ]; then
-  echo "Running /etc/rc.d/rc.modules:"
+# Run the kernel module script.  This updates the module dependencies and
+# also supports manually loading kernel modules through rc.modules.local.
+if [ -x /etc/rc.d/rc.modules ]; then
   /bin/sh /etc/rc.d/rc.modules
 fi
 
-# Configure runtime kernel parameters:
+# Configure kernel parameters:
 if [ -x /sbin/sysctl -a -r /etc/sysctl.conf ]; then
   echo -e "${BOLDWHITE}Setting kernel runtime parameters:${COLOR_RESET}"
-  /sbin/sysctl -e -p /etc/sysctl.conf
+  echo "Configuring kernel parameters:  /sbin/sysctl -e --system"
+  /sbin/sysctl -e --system
+elif [ -x /sbin/sysctl  ]; then
+  echo "Configuring kernel parameters:  /sbin/sysctl -e --system"
+  # Don't say "Applying /etc/sysctl.conf" or complain if the file doesn't exist
+  /sbin/sysctl -e --system 2> /dev/null | grep -v "Applying /etc/sysctl.conf"
 fi
 
 # Check all the non-root filesystems:
@@ -355,9 +343,12 @@ fi
 echo -e "${BOLDCYAN}Mounting non-root filesystems:${COLOR_RESET}"
 sleep 3
 if /bin/grep -wq devpts /proc/mounts ; then
-  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs,nodevpts
+  # This pipe after the mount command is just to convert the new
+  # mount verbose output back to the old format that contained
+  # more useful information:
+  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs,nodevpts | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
 else
-  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs
+  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
 fi
 
 # Enable swapping again.  This is needed in case a swapfile is used,
@@ -372,6 +363,11 @@ rm -f /var/run/* /var/run/*/* /var/run/*/*/* /etc/nologin \
   /tmp/.Xauth* 1> /dev/null 2> /dev/null
   ( cd /var/log/setup/tmp && rm -rf * )
   ( cd /tmp && rm -rf kde-[a-zA-Z]* ksocket-[a-zA-Z]* hsperfdata_[a-zA-Z]* plugtmp* )
+
+# Clear /var/lock/subsys:
+if [ -d /var/lock/subsys ]; then
+  rm -f /var/lock/subsys/*
+fi
 
 # Create /tmp/{.ICE-unix,.X11-unix} if they are not present:
 if [ ! -e /tmp/.ICE-unix ]; then
