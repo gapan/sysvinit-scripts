@@ -92,9 +92,16 @@ if [ -x /etc/rc.d/rc.inet1 ]; then
   . /etc/rc.d/rc.inet1
 fi
 
-# Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
-if [ -x /etc/rc.d/rc.scanluns ]; then
-  . /etc/rc.d/rc.scanluns
+# Start D-Bus:
+if [ -x /etc/rc.d/rc.messagebus ]; then
+  sh /etc/rc.d/rc.messagebus start
+fi
+
+# Start wicd or networkmanager:
+if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
+  sh /etc/rc.d/rc.wicd start
+elif [ -x /etc/rc.d/rc.networkmanager ]; then
+  sh /etc/rc.d/rc.networkmanager start
 fi
 
 # Start networking daemons:
@@ -102,8 +109,13 @@ if [ -x /etc/rc.d/rc.inet2 ]; then
   . /etc/rc.d/rc.inet2
 fi
 
+# Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
+if [ -x /etc/rc.d/rc.scanluns ]; then
+  . /etc/rc.d/rc.scanluns
+fi
+
 # Mount any additional filesystem types that haven't already been mounted:
-mount -a -v 2> /dev/null | grep -v "already mounted"
+mount -a -v 2> /dev/null | grep -v -e "already mounted" -e "ignored" | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
 
 # Start the Control Script for automounter:
 if [ -x /etc/rc.d/rc.autofs ]; then
@@ -124,20 +136,14 @@ fi
 chmod 755 / 2> /dev/null
 chmod 1777 /tmp /var/tmp
 
-# Start APM or ACPI daemon.
-# If APM is enabled in the kernel, start apmd:
-if [ -e /proc/apm ]; then
-  if [ -x /usr/sbin/apmd ]; then
-    echo -e "${BOLDWHITE}Starting APM daemon:${COLOR_RESET}  /usr/sbin/apmd"
-    /usr/sbin/apmd
-  fi
-elif [ -x /etc/rc.d/rc.acpid ]; then # otherwise, start acpid:
+# Start ACPI daemon.
+if [ -x /etc/rc.d/rc.acpid ]; then
   . /etc/rc.d/rc.acpid start
 fi
 
-# Start D-Bus:
-if [ -x /etc/rc.d/rc.messagebus ]; then
-  /bin/sh /etc/rc.d/rc.messagebus start
+# Enable CPU frequency scaling:
+if [ -x /etc/rc.d/rc.cpufreq ]; then
+  . /etc/rc.d/rc.cpufreq start
 fi
 
 # Start console-kit-daemon:
@@ -145,16 +151,15 @@ if [ -x /etc/rc.d/rc.consolekit ]; then
   /bin/sh /etc/rc.d/rc.consolekit start
 fi
 
+# Start system-wide PulseAudio daemon (not recommended, nor required in
+# order to use PulseAudio -- see the script for details):
+if [ -x /etc/rc.d/rc.pulseaudio ]; then
+  . /etc/rc.d/rc.pulseaudio start
+fi
+
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
   /bin/sh /etc/rc.d/rc.bluetooth start
-fi
-
-# Start wicd or networkmanager:
-if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
-  . /etc/rc.d/rc.wicd start
-elif [ -x /etc/rc.d/rc.networkmanager ]; then
-  .  /etc/rc.d/rc.networkmanager start
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
