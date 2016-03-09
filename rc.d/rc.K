@@ -70,7 +70,7 @@ fi
 # Kill any processes (typically gam) that would otherwise prevent
 # unmounting NFS volumes:
 unset FUSER_DELAY
-for dir in $(/bin/mount | grep 'type nfs' | cut -d ' ' -f 3 ) ; do
+for dir in $(/bin/mount | grep 'type nfs ' | cut -d ' ' -f 3 ) ; do
   echo "Killing processes holding NFS mount $dir open..."
   # Background this to prevent fuser from also blocking shutdown:
   /usr/bin/fuser -k -m $dir &
@@ -82,8 +82,8 @@ if [ ! -z "$FUSER_DELAY" ]; then
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
-echo -e "${BOLDCYAN}Unmounting remote filesystems.${COLOR_RESET}"
-/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs
+echo -e "${BOLDCYAN}Unmounting remote filesystems:${COLOR_RESET}"
+/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g"
 
 # Shut down PCMCIA devices:
 if [ -x /etc/rc.d/rc.pcmcia ] ; then
@@ -98,9 +98,10 @@ if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
 fi
 
 # Kill all processes.
+OMITPIDS="$(for p in $(pgrep mdmon); do echo -o $p; done)" # Don't kill mdmon
 echo
 echo -e "${BOLDMAGENTA}Sending all processes the SIGHUP signal.${COLOR_RESET}"
-killall5 -1
+killall5 -1 $OMITPIDS
 echo -n "Waiting for processes to hang up"
 for loop in 0 1 2 3 4 5 ; do
   sleep 1
@@ -108,7 +109,7 @@ for loop in 0 1 2 3 4 5 ; do
 done
 echo
 echo -e "${BOLDMAGENTA}Sending all processes the SIGTERM signal.${COLOR_RESET}"
-killall5 -15
+killall5 -15 $OMITPIDS
 echo -n "Waiting for processes to terminate"
 for loop in 0 1 2 3 4 5 ; do
   sleep 1
@@ -116,7 +117,7 @@ for loop in 0 1 2 3 4 5 ; do
 done
 echo
 echo -e "${BOLDMAGENTA}Sending all processes the SIGKILL signal.${COLOR_RESET}"
-killall5 -9
+killall5 -9 $OMITPIDS
 echo -n "Waiting for processes to exit"
 for loop in 0 1 2 3 4 5 ; do
   sleep 1
