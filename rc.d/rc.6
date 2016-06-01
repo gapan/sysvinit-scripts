@@ -71,7 +71,7 @@ if [ -x /sbin/hwclock ]; then
     if [ ! -r /etc/adjtime ]; then
       echo "Creating system time correction file /etc/adjtime."
     fi
-    /sbin/hwclock  $CLOCK_OPT --localtime --systohc
+    /sbin/hwclock $CLOCK_OPT --localtime --systohc
   fi
 fi
 
