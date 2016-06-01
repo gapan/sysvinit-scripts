@@ -97,6 +97,11 @@ if [ -x /etc/rc.d/rc.messagebus ]; then
   sh /etc/rc.d/rc.messagebus start
 fi
 
+# Start Bluetooth:
+if [ -x /etc/rc.d/rc.bluetooth ]; then
+  sh /etc/rc.d/rc.bluetooth start
+fi
+
 # Start wicd or networkmanager:
 if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
   sh /etc/rc.d/rc.wicd start
@@ -155,11 +160,6 @@ fi
 # order to use PulseAudio -- see the script for details):
 if [ -x /etc/rc.d/rc.pulseaudio ]; then
   . /etc/rc.d/rc.pulseaudio start
-fi
-
-# Start Bluetooth:
-if [ -x /etc/rc.d/rc.bluetooth ]; then
-  /bin/sh /etc/rc.d/rc.bluetooth start
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
