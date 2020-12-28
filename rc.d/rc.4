@@ -16,7 +16,19 @@
 # Tell the viewers what's going to happen...
 echo -e "${BOLDGREEN}Starting up X11 session manager...${COLOR_RESET}"
 
-# Try lxdm first
+# If you'd like to start something different or in a different order than
+# the options below, create your own startup script /etc/rc.d/rc.4.local
+# and make it executable and it will be used instead:
+if [ -x /etc/rc.d/rc.4.local ]; then
+  exec /bin/bash /etc/rc.d/rc.4.local
+fi
+
+# Try lightdm first
+if [ -x /usr/sbin/lightdm ]; then
+  exec /usr/sbin/lightdm
+fi
+
+# Then try lxdm
 if [ -x /usr/sbin/lxdm ]; then
   exec /usr/sbin/lxdm
 fi
