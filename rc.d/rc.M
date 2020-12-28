@@ -19,17 +19,19 @@
 echo
 echo -e "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
 
-# Screen blanks after 15 minutes idle time, and powers down in one hour
-# if the kernel supports APM or ACPI power management:
-/bin/setterm -blank 15 -powersave powerdown -powerdown 60
+# Call the setterm init script to set screen blanking and power management
+# defaults:
+if [ -x /etc/rc.d/rc.setterm ]; then
+  /etc/rc.d/rc.setterm
+fi
 
 # Set the hostname.
 if [ -r /etc/HOSTNAME ]; then
-  /bin/hostname $(cat /etc/HOSTNAME | cut -f1 -d .)
+  /bin/hostname $(cat /etc/HOSTNAME)
 else
   # fall back on this old default:
   echo "darkstar.example.net" > /etc/HOSTNAME
-  /bin/hostname darkstar
+  /bin/hostname $(cat /etc/HOSTNAME)
 fi
 
 # Set the permissions on /var/log/dmesg according to whether the kernel
@@ -66,14 +68,14 @@ fi
 # that's how it is...
 #
 if [ -x /etc/rc.d/rc.pcmcia ]; then
-  . /etc/rc.d/rc.pcmcia start
+  /etc/rc.d/rc.pcmcia start
   # The cards might need a little extra time here to initialize.
   sleep 5
 fi
 
 # Start the system logger.
-if [ -x /etc/rc.d/rc.syslog -a -x /usr/sbin/syslogd -a -d /var/log ]; then
-  . /etc/rc.d/rc.syslog start
+if [ -x /etc/rc.d/rc.syslog ]; then
+  /etc/rc.d/rc.syslog start
 fi
 
 # Run rc.udev again.  This will start udev if it is not already running
@@ -82,41 +84,53 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q devtmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      /etc/rc.d/rc.udev start
     fi
   fi
 fi
 
+# Start the haveged entropy daemon:
+if [ -x /etc/rc.d/rc.haveged ]; then
+  /etc/rc.d/rc.haveged start
+fi
+
+# Start the rngd entropy daemon:
+if [ -x /etc/rc.d/rc.rngd ]; then
+  /etc/rc.d/rc.rngd start
+fi
+
 # Initialize the networking hardware.
 if [ -x /etc/rc.d/rc.inet1 ]; then
-  . /etc/rc.d/rc.inet1
+  /etc/rc.d/rc.inet1
 fi
 
 # Start D-Bus:
 if [ -x /etc/rc.d/rc.messagebus ]; then
-  sh /etc/rc.d/rc.messagebus start
+  /etc/rc.d/rc.messagebus start
+fi
+
+# Start the session/seat daemon:
+if [ -x /etc/rc.d/rc.elogind -a -x /bin/loginctl ]; then
+  /etc/rc.d/rc.elogind start
+elif [ -x /etc/rc.d/rc.consolekit -a -x /usr/sbin/console-kit-daemon ]; then
+  /etc/rc.d/rc.consolekit start
 fi
 
 # Start Bluetooth:
 if [ -x /etc/rc.d/rc.bluetooth ]; then
-  sh /etc/rc.d/rc.bluetooth start
+  /etc/rc.d/rc.bluetooth start
 fi
 
 # Start wicd or networkmanager:
 if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
-  sh /etc/rc.d/rc.wicd start
+  /etc/rc.d/rc.wicd start
 elif [ -x /etc/rc.d/rc.networkmanager ]; then
-  sh /etc/rc.d/rc.networkmanager start
+  /etc/rc.d/rc.networkmanager start
 fi
 
 # Start networking daemons:
 if [ -x /etc/rc.d/rc.inet2 ]; then
-  . /etc/rc.d/rc.inet2
-fi
-
-# Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
-if [ -x /etc/rc.d/rc.scanluns ]; then
-  . /etc/rc.d/rc.scanluns
+  /etc/rc.d/rc.inet2
 fi
 
 # Mount any additional filesystem types that haven't already been mounted:
@@ -124,12 +138,11 @@ mount -a -v 2> /dev/null | grep -v -e "already mounted" -e "ignored" | cut -f 1 
 
 # Start the Control Script for automounter:
 if [ -x /etc/rc.d/rc.autofs ]; then
-  sh /etc/rc.d/rc.autofs start
+  /etc/rc.d/rc.autofs start
 fi
 
 # Remove stale locks and junk files (must be done after mount -a!)
-/bin/rm -f /var/lock/* /var/spool/uucp/LCK..* /tmp/.X*lock /tmp/core /core 2> /dev/null
-/bin/rm -rf /var/spool/cron/cron.?????? 2> /dev/null
+/bin/rm -f /var/lock/* /var/spool/uucp/LCK..* /tmp/.X*lock /tmp/.X11-unix/* 2> /dev/null
 
 # Remove stale hunt sockets so the game can start.
 if [ -r /tmp/hunt -o -r /tmp/hunt.stats ]; then
@@ -143,23 +156,18 @@ chmod 1777 /tmp /var/tmp
 
 # Start ACPI daemon.
 if [ -x /etc/rc.d/rc.acpid ]; then
-  . /etc/rc.d/rc.acpid start
+  /etc/rc.d/rc.acpid start
 fi
 
 # Enable CPU frequency scaling:
 if [ -x /etc/rc.d/rc.cpufreq ]; then
-  . /etc/rc.d/rc.cpufreq start
-fi
-
-# Start console-kit-daemon:
-if [ -x /etc/rc.d/rc.consolekit ]; then
-  /bin/sh /etc/rc.d/rc.consolekit start
+  /etc/rc.d/rc.cpufreq start
 fi
 
 # Start system-wide PulseAudio daemon (not recommended, nor required in
 # order to use PulseAudio -- see the script for details):
 if [ -x /etc/rc.d/rc.pulseaudio ]; then
-  . /etc/rc.d/rc.pulseaudio start
+  /etc/rc.d/rc.pulseaudio start
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
@@ -174,7 +182,7 @@ fi
 
 # Start the Network Time Protocol daemon:
 if [ -x /etc/rc.d/rc.ntpd ]; then
-  /bin/sh /etc/rc.d/rc.ntpd start
+  /etc/rc.d/rc.ntpd start
 fi
 
 # Start the print spooling system.  This will usually be LPRng (lpd) or CUPS.
@@ -185,7 +193,7 @@ if [ -x /etc/rc.d/rc.cups ]; then
 elif [ -x /etc/rc.d/rc.lprng ]; then
   # Start LPRng (lpd):
   echo -e "${BOLDWHITE}Starting the print spooling system:${COLOR_RESET}"
-  . /etc/rc.d/rc.lprng start
+  /etc/rc.d/rc.lprng start
 fi
 
 # Start netatalk. (a file/print server for Macs using Appletalk)
@@ -197,12 +205,10 @@ if [ -x /usr/bin/glib-compile-schemas ]; then
 fi
 
 # Start smartd, which monitors the status of S.M.A.R.T. compatible
-# hard drives and reports any problems.  Note some devices (which aren't
-# smart, I guess ;) will hang if probed by smartd, so it's commented out
-# by default.
-#if [ -x /usr/sbin/smartd ]; then
-#  /usr/sbin/smartd
-#fi
+# hard drives and reports any problems:
+if [ -x /etc/rc.d/rc.smartd ]; then
+  /etc/rc.d/rc.smartd start
+fi
 
 # Monitor the UPS with genpowerd.
 # To use this, uncomment this section and edit your settings in
@@ -227,17 +233,14 @@ if [ -x /sbin/accton -a -r /var/log/pacct ]; then
 fi
 
 # Start crond (Dillon's crond):
-# If you want cron to actually log activity to /var/log/cron, then change
-# -l notice to -l info to increase the logging level.
-if [ -x /usr/sbin/crond ]; then
-  echo -e "${BOLDWHITE}Starting the cron scheduling daemon:${COLOR_RESET}"
-  /usr/sbin/crond -l notice
+if [ -x /etc/rc.d/rc.crond ]; then
+  /etc/rc.d/rc.crond start
 fi
 
 # Start atd (manages jobs scheduled with 'at'):
-if [ -x /usr/sbin/atd ]; then
+if [ -x /etc/rc.d/rc.atd ]; then
   echo -e "${BOLDWHITE}Starting the at scheduling daemon:${COLOR_RESET}"
-  /usr/sbin/atd -b 15 -l 1
+  /etc/rc.d/rc.atd start
 fi
 
 # Slackware-Mini-Quota-HOWTO:
@@ -272,57 +275,70 @@ if grep -q quota /etc/fstab ; then
 fi
 
 # Start the SASL authentication server.  This provides SASL
-# authentication services for sendmail:
+# authentication services for sendmail/postfix:
 if [ -x /etc/rc.d/rc.saslauthd ]; then
-  . /etc/rc.d/rc.saslauthd start
+  /etc/rc.d/rc.saslauthd start
 fi
 
 # Start the sendmail daemon:
-if [ -x /etc/rc.d/rc.sendmail ]; then
-  . /etc/rc.d/rc.sendmail start
+# Start the mail server. Try the rc.sendmail script first, then try rc.postfix.
+if [ -x /etc/rc.d/rc.sendmail -a -x usr/sbin/makemap ]; then
+  /etc/rc.d/rc.sendmail start
+elif [ -x /etc/rc.d/rc.postfix -a -x usr/sbin/postdrop ]; then
+  /etc/rc.d/rc.postfix start
 fi
 
 # Load ALSA (sound) defaults:
 if [ -x /etc/rc.d/rc.alsa ]; then
   echo -e "${BOLDWHITE}Configuring ALSA:${COLOR_RESET}"
-  . /etc/rc.d/rc.alsa
+  /etc/rc.d/rc.alsa
 fi
 
 # Load a custom keymap if the user has an rc.keymap script.
 if [ -x /etc/rc.d/rc.keymap ]; then
   echo -e "${BOLDWHITE}Loading default keyboard map:${COLOR_RESET}"
-  . /etc/rc.d/rc.keymap
+  /etc/rc.d/rc.keymap
 fi
 
 # Start the MySQL database:
 if [ -x /etc/rc.d/rc.mysqld ]; then
-  . /etc/rc.d/rc.mysqld start
+  /etc/rc.d/rc.mysqld start
 fi
 
 # Start Apache web server:
 if [ -x /etc/rc.d/rc.httpd ]; then
-  . /etc/rc.d/rc.httpd start
+  /etc/rc.d/rc.httpd start
 fi
 
 # Start OpenLDAP:
 if [ -x /etc/rc.d/rc.openldap ]; then
-  . /etc/rc.d/rc.openldap start
+  /etc/rc.d/rc.openldap start
+fi
+
+# Start local LDAP name service daemon (from nss-pam-ldapd):
+if [ -x /etc/rc.d/rc.nslcd ]; then
+  /etc/rc.d/rc.nslcd start
+fi
++
+# Start Dovecot:
+if [ -x /etc/rc.d/rc.dovecot ]; then
+  /etc/rc.d/rc.dovecot start
 fi
 
 # Start Samba (a file/print server for Win95/NT machines).
 # Samba can be started in /etc/inetd.conf instead.
 if [ -x /etc/rc.d/rc.samba ]; then
-  . /etc/rc.d/rc.samba start
+  /etc/rc.d/rc.samba start
 fi
 
 # Start the GPM mouse server:
 if [ -x /etc/rc.d/rc.gpm ]; then
-  . /etc/rc.d/rc.gpm start
+  /etc/rc.d/rc.gpm start
 fi
 
 # If there are SystemV init scripts for this runlevel, run them.
 if [ -x /etc/rc.d/rc.sysvinit ]; then
-  . /etc/rc.d/rc.sysvinit
+  /etc/rc.d/rc.sysvinit
 fi
 
 # Start all other rc files not listed in here
@@ -332,12 +348,12 @@ fi
 
 # Start numlockx if it's activated.
 if [ -x /etc/rc.d/rc.numlock ]; then
-  . /etc/rc.d/rc.numlock start
+  /etc/rc.d/rc.numlock start
 fi
 
 # Load a custom screen font if the user has an rc.font script.
 if [ -x /etc/rc.d/rc.font ]; then
-  . /etc/rc.d/rc.font
+  /etc/rc.d/rc.font
 fi
 
 # We need to wait 25 secs and try to mount everything not mounted
