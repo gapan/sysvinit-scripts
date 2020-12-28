@@ -20,16 +20,21 @@ echo
 echo -e "${BOLDYELLOW}Preparing for single user mode (run level 1).${COLOR_RESET}"
 
 # Set the path.
-PATH=/sbin:/bin:/usr/bin:/usr/sbin
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
+
+# Load a custom screen font if the user has an rc.font script.
+if [ -x /etc/rc.d/rc.font ]; then
+  /etc/rc.d/rc.font
+fi
 
 # Load any needed keyboard mappings:
 if [ -x /etc/rc.d/rc.keymap ]; then
-  . /etc/rc.d/rc.keymap
+  /etc/rc.d/rc.keymap
 fi
 
 # If there are SystemV init scripts for this runlevel, run them.
 if [ -x /etc/rc.d/rc.sysvinit ]; then
-  . /etc/rc.d/rc.sysvinit
+  /etc/rc.d/rc.sysvinit
 fi
 
 # Try to turn off quota:
@@ -59,7 +64,7 @@ fi
 
 # Stop the Samba server:
 if [ -x /etc/rc.d/rc.samba ]; then
-  . /etc/rc.d/rc.samba stop
+  /etc/rc.d/rc.samba stop
 fi
 
 # Shut down the NFS server:
@@ -70,10 +75,10 @@ fi
 # Kill any processes (typically gam) that would otherwise prevent
 # unmounting NFS volumes:
 unset FUSER_DELAY
-for dir in $(/bin/mount | grep 'type nfs ' | cut -d ' ' -f 3 ) ; do
+for dir in $(/bin/mount | grep -e 'type nfs ' -e 'type nfs4 ' | sed -e 's|.* on ||g' | cut -d ' ' -f 1) ; do
   echo "Killing processes holding NFS mount $dir open..."
   # Background this to prevent fuser from also blocking shutdown:
-  /usr/bin/fuser -k -m $dir &
+  /usr/bin/fuser -k -M -m "$dir" &
   FUSER_DELAY=5
 done
 # If fuser was run, let it have some delay:
@@ -83,18 +88,18 @@ fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
 echo -e "${BOLDCYAN}Unmounting remote filesystems:${COLOR_RESET}"
-/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g"
+/bin/umount -v -a -l -f -r -t nfs,nfs4,smbfs,cifs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g"
 
 # Shut down PCMCIA devices:
 if [ -x /etc/rc.d/rc.pcmcia ] ; then
-  . /etc/rc.d/rc.pcmcia stop
+  /etc/rc.d/rc.pcmcia stop
   # The cards might need a little extra time here to deactivate:
   sleep 5
 fi
 
 # Terminate acpid before syslog:
 if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
-  . /etc/rc.d/rc.acpid stop
+  /etc/rc.d/rc.acpid stop
 fi
 
 # Kill all processes.
@@ -127,5 +132,5 @@ echo
 
 # Now go to the single user level
 echo -e "${BOLDYELLOW}Going to single user mode.${COLOR_RESET}"
-telinit -t 1 1
+/sbin/telinit -t 1 1
 
