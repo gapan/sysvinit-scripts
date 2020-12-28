@@ -13,7 +13,7 @@
 echo
 echo -e "${BOLDYELLOW}Initializing.${COLOR_RESET}"
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 
 # Try to mount /proc:
 echo -e "${BOLDCYAN}Mounting proc filesystem:${COLOR_RESET}"
@@ -32,13 +32,15 @@ fi
 # initrd has already done so):
 if [ -d /run ]; then
   if ! grep -wq "tmpfs /run tmpfs" /proc/mounts ; then
-    /sbin/mount -v -n -t tmpfs tmpfs /run -o mode=0755
+    /sbin/mount -v -n -t tmpfs tmpfs /run -o mode=0755,size=32M,nodev,nosuid,noexec
   fi
+  # Make sure that mounts below /run are visible in both /run and /var/run:
+  /sbin/mount --make-shared /run
 fi
 
 # Load the loop device kernel module:
 if [ -x /etc/rc.d/rc.loop ]; then
-  . /etc/rc.d/rc.loop start
+  /etc/rc.d/rc.loop start
 fi
 
 # Initialize udev to manage /dev entries and hotplugging.
@@ -52,7 +54,7 @@ fi
 if grep -wq sysfs /proc/mounts && grep -q devtmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
     if [ -x /etc/rc.d/rc.udev ]; then
-      /bin/sh /etc/rc.d/rc.udev start
+      /etc/rc.d/rc.udev start
     fi
   fi
 fi
@@ -64,7 +66,7 @@ if grep -wq cgroup /proc/filesystems ; then
     # Check if we have some tools to autodetect the available cgroup controllers
     if [ -x /bin/cut -a -x /bin/tail ]; then
       # Mount a tmpfs as the cgroup filesystem root
-      mount -t tmpfs -o mode=0755 cgroup_root /sys/fs/cgroup
+      mount -t tmpfs -o mode=0755,size=8M cgroup_root /sys/fs/cgroup
       # Autodetect available controllers and mount them in subfolders
       controllers="$(/bin/cut -f 1 /proc/cgroups | /bin/tail -n +2)"
       for i in $controllers; do
@@ -81,7 +83,6 @@ if grep -wq cgroup /proc/filesystems ; then
     mount -t cgroup cgroup /dev/cgroup
   fi
 fi
-
 
 # Initialize the Logical Volume Manager.
 # This won't start unless we find /etc/lvmtab (LVM1) or
@@ -187,11 +188,6 @@ fi
 echo -e "${BOLDCYAN}Enabling swap partition:${COLOR_RESET}"
 /sbin/swapon -a 2> /dev/null
 
-# Start FUSE, if requested:
-if [ -x /etc/rc.d/rc.fuse ]; then
-  /bin/sh /etc/rc.d/rc.fuse start
-fi
-
 # Set the tick and frequency for the system clock.
 # Default values are: TICK=10000 and FREQ=0
 TICK=10000
@@ -245,8 +241,13 @@ if [ -r /etc/forcefsck ]; then
   FORCEFSCK="-f"
 fi
 
-# Check the root filesystem:
-if [ ! $READWRITE = yes ]; then
+# If we're using F2FS for the root filesystem, don't check it as it doesn't
+# allow checking a read-only filesystem:
+if grep -q ' / f2fs ' /proc/mounts ; then
+  echo "Remounting root device with read-write enabled."
+  /sbin/mount -w -v -n -o remount /
+elif [ ! $READWRITE = yes ]; then
+  # Check the root filesystem:
   RETVAL=0
   if [ ! -r /etc/fastboot ]; then
     echo -e "${BOLDCYAN}Checking root filesystem:${COLOR_RESET}"
@@ -285,7 +286,6 @@ if [ ! $READWRITE = yes ]; then
     /sbin/umount -a -r
     /sbin/mount -n -o remount,ro /
     echo "Rebooting system."
-    sleep 2
     reboot -f
   fi
   # Remount the root filesystem in read-write mode
@@ -308,21 +308,22 @@ else
   echo "to the Linux section in your /etc/lilo.conf and type 'lilo' to reinstall it."
 fi # Done checking root filesystem
 
-# Any /etc/mtab that exists here is old, so we start with a new one:
-/bin/rm -f /etc/mtab{,~,.tmp} && /bin/touch /etc/mtab
-
-# Add entry for / to /etc/mtab:
-/sbin/mount -f -w /
-
-# Add /proc, /sys, and /dev/shm mounts to /etc/mtab:
-if [ -d /proc/sys ]; then
-  /sbin/mount -f -t proc proc /proc
-fi
-if [ -d /sys/bus ]; then
-  /sbin/mount -f -t sysfs sysfs /sys
-fi
-if grep -q '^[^ ]\+ /dev/shm ' /proc/mounts 2> /dev/null ; then
-  /sbin/mount -f -t tmpfs tmpfs /dev/shm
+# If /etc/mtab is a symlink (probably to /proc/mounts) then we don't want to mess with it.
+if [ ! -L /etc/mtab -o ! -r /etc/mtab ]; then
+  # /etc/mtab is a file (or doesn't exist), so we'll handle it the old way:
+  # Any /etc/mtab that exists here is old, so we start with a new one:
+  /bin/rm -f /etc/mtab{,~,.tmp} && /bin/touch /etc/mtab
+  # Add /, /proc, /sys, and /dev/shm mounts to /etc/mtab:
+  /sbin/mount -f -w /
+  if [ -d /proc/sys ]; then
+    /sbin/mount -f -t proc proc /proc
+  fi
+  if [ -d /sys/bus ]; then
+    /sbin/mount -f -t sysfs sysfs /sys
+  fi
+  if grep -q '^[^ ]\+ /dev/shm ' /proc/mounts 2> /dev/null ; then
+    /sbin/mount -f -t tmpfs tmpfs /dev/shm
+  fi
 fi
 
 # Configure ISA Plug-and-Play devices:
@@ -336,7 +337,7 @@ fi
 # Run the kernel module script.  This updates the module dependencies and
 # also supports manually loading kernel modules through rc.modules.local.
 if [ -x /etc/rc.d/rc.modules ]; then
-  /bin/sh /etc/rc.d/rc.modules
+  /etc/rc.d/rc.modules
 fi
 
 # Configure kernel parameters:
@@ -370,36 +371,41 @@ fi
 # because those have already been mounted.  Also check that
 # devpts is not already mounted before attempting to mount
 # it.  With a 2.6.x or newer kernel udev mounts devpts.
-# We also need to wait a little bit to let USB and other
-# hotplugged devices settle (sorry to slow down the boot):
 echo -e "${BOLDCYAN}Mounting non-root filesystems:${COLOR_RESET}"
-sleep 3
 if /bin/grep -wq devpts /proc/mounts ; then
   # This pipe after the mount command is just to convert the new
   # mount verbose output back to the old format that contained
   # more useful information:
-  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs,nodevpts | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
+  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs,nodevpts | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep " ${dev} " ; done
 else
-  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
+  /sbin/mount -a -v -t nonfs,nosmbfs,nocifs,noproc,nosysfs | grep successfully | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep " ${dev} " ; done
 fi
+
+# This should be empty as it's just a mountpoint now:
+rm -rf /var/run/*
+# Bind mount /run to /var/run:
+mount -o bind /run /var/run
 
 # Enable swapping again.  This is needed in case a swapfile is used,
 # as it can't be enabled until the filesystem it resides on has been
 # mounted read-write.
 /sbin/swapon -a 2> /dev/null
 
-# Start cgmanager (or cgproxy in a container):
-if [ -x /etc/rc.d/rc.cgmanager -a -d /sys/fs/cgroup ]; then
-  sh /etc/rc.d/rc.cgmanager start
+# Start libcgroup services:
+if [ -x /etc/rc.d/rc.cgconfig -a -x /etc/rc.d/rc.cgred -a -d /sys/fs/cgroup ]; then
+  /etc/rc.d/rc.cgconfig start ; echo " /usr/sbin/cgconfigparser -l /etc/cgconfig.conf"
+  /etc/rc.d/rc.cgred start
 fi
 
 # Clean up some temporary files:
-rm -f /var/run/* /var/run/*/* /var/run/*/*/* /etc/nologin \
-  /etc/dhcpc/*.pid /etc/forcefsck /etc/fastboot \
-  /var/state/saslauthd/saslauthd.pid \
-  /tmp/.Xauth* 1> /dev/null 2> /dev/null
+rm -f /etc/nologin /etc/dhcpc/*.pid /etc/forcefsck /etc/fastboot \
+  /var/state/saslauthd/saslauthd.pid /tmp/.Xauth* 1> /dev/null 2> /dev/null
+rm -rf /tmp/{kde-[a-zA-Z]*,ksocket-[a-zA-Z]*,hsperfdata_[a-zA-Z]*,plugtmp*}
+if [ -d /var/lib/pkgtools/setup/tmp ]; then
+  ( cd /var/lib/pkgtools/setup/tmp && rm -rf * )
+elif [ -d /var/log/setup/tmp ]; then
   ( cd /var/log/setup/tmp && rm -rf * )
-  ( cd /tmp && rm -rf kde-[a-zA-Z]* ksocket-[a-zA-Z]* hsperfdata_[a-zA-Z]* plugtmp* )
+fi
 
 # Clear /var/lock/subsys:
 if [ -d /var/lock/subsys ]; then
@@ -421,6 +427,9 @@ touch /var/run/utmp
 chown root:utmp /var/run/utmp
 chmod 664 /var/run/utmp
 
+# In case pam_faillock(8) is being used, create the tally directory:
+mkdir -p /var/run/faillock
+
 # Update the current kernel level in the /etc/motd (Message Of The Day) file,
 # if the first line of that file begins with the word 'Linux'.
 # You are free to modify the rest of the file as you see fit.
@@ -430,7 +439,7 @@ fi
 
 # If there are SystemV init scripts for this runlevel, run them.
 if [ -x /etc/rc.d/rc.sysvinit ]; then
-  /bin/sh /etc/rc.d/rc.sysvinit
+  /etc/rc.d/rc.sysvinit
 fi
 
 # Run serial port setup script:
@@ -438,7 +447,7 @@ fi
 # set up correctly.  If this happens, you may have to edit the file from a
 # boot disk, and/or set it as non-executable:
 if [ -x /etc/rc.d/rc.serial ]; then
-  /bin/sh /etc/rc.d/rc.serial start
+  /etc/rc.d/rc.serial start
 fi
 
 # Carry an entropy pool between reboots to improve randomness.
@@ -453,4 +462,3 @@ else
   dd if=/dev/urandom of=/etc/random-seed count=1 bs=512 2> /dev/null
 fi
 chmod 600 /etc/random-seed
-
