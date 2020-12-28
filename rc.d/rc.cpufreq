@@ -34,6 +34,12 @@ if [ ! -z "$1" -a "$1" != "start" ]; then
   SCALING_GOVERNOR=$1
 fi
 
+# To force a particular option without having to edit this file, uncomment the
+# line in /etc/default/cpufreq and edit it to select the desired option:
+if [ -r /etc/default/cpufreq ]; then
+  . /etc/default/cpufreq
+fi
+
 # If you need to load a specific CPUFreq driver, load it here.  Most likely you don't.
 #/sbin/modprobe acpi-cpufreq
 
