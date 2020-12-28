@@ -19,7 +19,7 @@ echo
 echo -e "${BOLDYELLOW}Preparing to halt all processes.${COLOR_RESET}"
 
 # Set the path.
-PATH=/sbin:/etc:/bin:/usr/bin
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 
 # If there are SystemV init scripts for this runlevel, run them.
 if [ -x /etc/rc.d/rc.sysvinit ]; then
