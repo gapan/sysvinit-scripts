@@ -319,7 +319,7 @@ fi
 if [ -x /etc/rc.d/rc.nslcd ]; then
   /etc/rc.d/rc.nslcd start
 fi
-+
+
 # Start Dovecot:
 if [ -x /etc/rc.d/rc.dovecot ]; then
   /etc/rc.d/rc.dovecot start
