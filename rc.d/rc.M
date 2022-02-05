@@ -1,11 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 #
 # rc.M		This file is executed by init(8) when the system is being
 #		initialized for one of the "multi user" run levels (i.e.
 #		levels 1 through 6).  It usually does mounting of file
 #		systems et al.
-#
-# Version:	@(#)/etc/rc.d/rc.M	2.23	Wed Feb 26 19:20:58 PST 2003
 #
 # Author:	Fred N. van Kempen, <waltje@uwalt.nl.mugnet.org>
 #		Heavily modified by Patrick Volkerding <volkerdi@slackware.com>
@@ -19,19 +17,29 @@
 echo
 echo -e "${BOLDYELLOW}Going to multi user mode.${COLOR_RESET}"
 
+# If we are in an lxc container, set $container to skip parts of the script.
+# Thanks to Matteo Bernardini <ponce@slackbuilds.org> and Chris Willing for
+# the initial work making this script lxc compatible.
+if grep -aq container=lxc /proc/1/environ 2> /dev/null ; then
+  container="lxc"
+fi
+
 # Call the setterm init script to set screen blanking and power management
 # defaults:
-if [ -x /etc/rc.d/rc.setterm ]; then
+if [ -x /etc/rc.d/rc.setterm -a -z "$container" ]; then
   /etc/rc.d/rc.setterm
 fi
 
 # Set the hostname.
-if [ -r /etc/HOSTNAME ]; then
-  /bin/hostname $(cat /etc/HOSTNAME)
-else
-  # fall back on this old default:
-  echo "darkstar.example.net" > /etc/HOSTNAME
-  /bin/hostname $(cat /etc/HOSTNAME)
+# Set the hostname:
+if [ -z "$container" ]; then
+  if [ -r /etc/HOSTNAME ]; then
+    /bin/hostname $(cat /etc/HOSTNAME)
+  else
+    # fall back on this old default:
+    echo "darkstar.example.net" > /etc/HOSTNAME
+    /bin/hostname $(cat /etc/HOSTNAME)
+  fi
 fi
 
 # Set the permissions on /var/log/dmesg according to whether the kernel
@@ -67,7 +75,7 @@ fi
 # Hopefully this situation will be unified in the future, but for now
 # that's how it is...
 #
-if [ -x /etc/rc.d/rc.pcmcia ]; then
+if [ -x /etc/rc.d/rc.pcmcia -a -z "$container" ]; then
   /etc/rc.d/rc.pcmcia start
   # The cards might need a little extra time here to initialize.
   sleep 5
@@ -83,19 +91,19 @@ fi
 # to look for device changes and to generate persistent rules if needed.
 if grep -wq sysfs /proc/mounts && grep -q devtmpfs /proc/filesystems ; then
   if ! grep -wq nohotplug /proc/cmdline ; then
-    if [ -x /etc/rc.d/rc.udev ]; then
+    if [ -x /etc/rc.d/rc.udev -a -z "$container" ]; then
       /etc/rc.d/rc.udev start
     fi
   fi
 fi
 
 # Start the haveged entropy daemon:
-if [ -x /etc/rc.d/rc.haveged ]; then
+if [ -x /etc/rc.d/rc.haveged -a -z "$container" ]; then
   /etc/rc.d/rc.haveged start
 fi
 
 # Start the rngd entropy daemon:
-if [ -x /etc/rc.d/rc.rngd ]; then
+if [ -x /etc/rc.d/rc.rngd -a -z "$container" ]; then
   /etc/rc.d/rc.rngd start
 fi
 
@@ -155,12 +163,12 @@ chmod 755 / 2> /dev/null
 chmod 1777 /tmp /var/tmp
 
 # Start ACPI daemon.
-if [ -x /etc/rc.d/rc.acpid ]; then
+if [ -x /etc/rc.d/rc.acpid -a -z "$container" ]; then
   /etc/rc.d/rc.acpid start
 fi
 
 # Enable CPU frequency scaling:
-if [ -x /etc/rc.d/rc.cpufreq ]; then
+if [ -x /etc/rc.d/rc.cpufreq -a -z "$container" ]; then
   /etc/rc.d/rc.cpufreq start
 fi
 
@@ -206,7 +214,7 @@ fi
 
 # Start smartd, which monitors the status of S.M.A.R.T. compatible
 # hard drives and reports any problems:
-if [ -x /etc/rc.d/rc.smartd ]; then
+if [ -x /etc/rc.d/rc.smartd -a -z "$container" ]; then
   /etc/rc.d/rc.smartd start
 fi
 
@@ -217,7 +225,7 @@ fi
 # /usr/doc/genpower-*/ directory.
 # You'll also need to configure a similar block in /etc/rc.d/rc.6 if you want
 # support for stopping the UPS's inverter after the machine halts.
-#if [ -x /sbin/genpowerd ]; then
+#if [ -x /sbin/genpowerd -a -z "$container" ]; then
 #  echo -e "${BOLDWHITE}Starting genpowerd daemon.${COLOR_RESET}"
 #  /sbin/genpowerd
 #fi
@@ -274,22 +282,8 @@ if grep -q quota /etc/fstab ; then
   fi
 fi
 
-# Start the SASL authentication server.  This provides SASL
-# authentication services for sendmail/postfix:
-if [ -x /etc/rc.d/rc.saslauthd ]; then
-  /etc/rc.d/rc.saslauthd start
-fi
-
-# Start the sendmail daemon:
-# Start the mail server. Try the rc.sendmail script first, then try rc.postfix.
-if [ -x /etc/rc.d/rc.sendmail -a -x usr/sbin/makemap ]; then
-  /etc/rc.d/rc.sendmail start
-elif [ -x /etc/rc.d/rc.postfix -a -x usr/sbin/postdrop ]; then
-  /etc/rc.d/rc.postfix start
-fi
-
 # Load ALSA (sound) defaults:
-if [ -x /etc/rc.d/rc.alsa ]; then
+if [ -x /etc/rc.d/rc.alsa -a -z "$container" ]; then
   echo -e "${BOLDWHITE}Configuring ALSA:${COLOR_RESET}"
   /etc/rc.d/rc.alsa
 fi
@@ -300,14 +294,15 @@ if [ -x /etc/rc.d/rc.keymap ]; then
   /etc/rc.d/rc.keymap
 fi
 
-# Start the MySQL database:
+# Start the MariaDB database:
 if [ -x /etc/rc.d/rc.mysqld ]; then
   /etc/rc.d/rc.mysqld start
 fi
 
-# Start Apache web server:
-if [ -x /etc/rc.d/rc.httpd ]; then
-  /etc/rc.d/rc.httpd start
+# Start the SASL authentication server.  This provides SASL
+# authentication services for sendmail/postfix:
+if [ -x /etc/rc.d/rc.saslauthd ]; then
+  /etc/rc.d/rc.saslauthd start
 fi
 
 # Start OpenLDAP:
@@ -323,6 +318,23 @@ fi
 # Start Dovecot:
 if [ -x /etc/rc.d/rc.dovecot ]; then
   /etc/rc.d/rc.dovecot start
+fi
+
+# Start Apache web server:
+if [ -x /etc/rc.d/rc.httpd ]; then
+  /etc/rc.d/rc.httpd start
+fi
+
+# Start the mail server. Try the rc.sendmail script first, then try rc.postfix.
+if [ -x /etc/rc.d/rc.sendmail -a -x usr/sbin/makemap ]; then
+  /etc/rc.d/rc.sendmail start
+elif [ -x /etc/rc.d/rc.postfix -a -x usr/sbin/postdrop ]; then
+  /etc/rc.d/rc.postfix start
+fi
+
+# Start Apache web server:
+if [ -x /etc/rc.d/rc.httpd ]; then
+  /etc/rc.d/rc.httpd start
 fi
 
 # Start Samba (a file/print server for Win95/NT machines).
