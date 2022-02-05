@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Put any commands you need to be run during shutdown here.
 
