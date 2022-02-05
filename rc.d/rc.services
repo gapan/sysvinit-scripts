@@ -1,55 +1,71 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import os
 
-blacklist = [ '.conf', \
-		'.new', \
+blacklist = [ \
 		'rc.0', \
 		'rc.4', \
+		'rc.4.local', \
 		'rc.6', \
+		'rc.K', \
+		'rc.M', \
+		'rc.S', \
 		'rc.acpid', \
 		'rc.alsa', \
+		'rc.alsa-oss', \
 		'rc.atalk', \
+		'rc.atd', \
 		'rc.autofs', \
 		'rc.bind', \
 		'rc.bluetooth', \
-		'rc.cgmanager', \
+		'rc.cgconfig', \
+		'rc.cgred', \
 		'rc.consolekit', \
 		'rc.cpufreq', \
+		'rc.crond', \
 		'rc.cups', \
 		'rc.dnsmasq', \
+		'rc.dovecot', \
+		'rc.elogind', \
 		'rc.famd', \
 		'rc.firewall', \
 		'rc.font', \
 		'rc.fuse', \
 		'rc.gpm', \
+		'rc.gpm-sample', \
 		'rc.hald', \
+		'rc.haveged', \
 		'rc.httpd', \
+		'rc.icecc-scheduler', \
+		'rc.iceccd', \
 		'rc.inet1', \
 		'rc.inet2', \
 		'rc.inetd', \
 		'rc.ip_forward', \
-		'rc.K', \
+		'rc.kadmind', \
 		'rc.keymap', \
-		'rc.licences', \
+		'rc.kpropd', \
+		'rc.krb5kdc', \
 		'rc.local', \
-		'rc.local_shutdown' \
+		'rc.local_shutdown', \
 		'rc.loop', \
 		'rc.lprng', \
-		'rc.M', \
 		'rc.messagebus', \
 		'rc.modules', \
 		'rc.modules.local', \
 		'rc.mysqld', \
 		'rc.networkmanager', \
 		'rc.nfsd', \
+		'rc.nslcd', \
 		'rc.ntpd', \
 		'rc.numlock', \
 		'rc.openldap', \
+		'rc.openvpn', \
 		'rc.pcmcia', \
+		'rc.postfix', \
 		'rc.pulseaudio', \
+		'rc.rngd', \
 		'rc.rpc', \
-		'rc.S', \
 		'rc.samba', \
 		'rc.sample', \
 		'rc.saslauthd', \
@@ -57,7 +73,9 @@ blacklist = [ '.conf', \
 		'rc.sendmail', \
 		'rc.serial', \
 		'rc.services', \
+		'rc.setterm', \
 		'rc.shorewall', \
+		'rc.smartd', \
 		'rc.snmpd', \
 		'rc.sshd', \
 		'rc.syslog', \
@@ -65,20 +83,27 @@ blacklist = [ '.conf', \
 		'rc.udev', \
 		'rc.uwd', \
 		'rc.wicd', \
-		'rc.wireless' ]
+		'rc.wireless', \
+		'rc.yp' ]
 
 def validscripts():
 	scripts = []
 	for script in os.listdir('/etc/rc.d/'):
 		use = True
-		for blk in blacklist:
-			if blk in script:
-				use = False
+		if script in blacklist or \
+				not script.startswith('rc.') or \
+				script.startswith('rc.modules') or \
+				script.endswith('~') or \
+				script.endswith('.new') or \
+				script.endswith('.orig') or \
+				script.endswith('.conf'):
+			use = False
 		if use == True:
 			if os.access('/etc/rc.d/'+script, os.X_OK):
 				if os.path.isfile('/etc/rc.d/'+script):
 					scripts.append(script)
 	return scripts
+
 
 for i in validscripts():
 	os.system('/usr/bin/ionice -c2 -n2 sh /etc/rc.d/'+i+' start &')
