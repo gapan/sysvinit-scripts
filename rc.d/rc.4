@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 #
 # rc.4		This file is executed by init(8) when the system is being
 #		initialized for run level 4 (XDM)
@@ -75,7 +75,7 @@ fi
 
 # error
 echo
-echo -e "${BOLDRED}Hey, GDM, LXDM, SLIM, KDM, or XDM are not executable or don't exist.${COLOR_RESET}"
+echo -e "${BOLDRED}Hey, GDM, LXDM, SLIM, KDM, SDDM or XDM are not executable or don't exist.${COLOR_RESET}"
 echo "Can't use runlevel 4 without one of those installed."
 echo
 echo -e "Toggle to another console ( ${BOLDWHITE}[${BOLDGREEN}Ctrl-${BOLDWHITE}] ${BOLDGREEN}Alt-F6${COLOR_RESET} ) to obtain access to your system."
