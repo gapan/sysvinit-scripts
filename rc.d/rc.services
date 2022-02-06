@@ -93,6 +93,7 @@ def validscripts():
 		if script in blacklist or \
 				not script.startswith('rc.') or \
 				script.startswith('rc.modules') or \
+				script.startswith('.') or \
 				script.endswith('~') or \
 				script.endswith('.new') or \
 				script.endswith('.orig') or \
