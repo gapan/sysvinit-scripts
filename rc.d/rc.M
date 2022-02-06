@@ -372,7 +372,7 @@ fi
 # already for networks shares, as network connections might not have
 # established properly yet.
 sleep 25 && {
-	mount -a -v 2> /dev/null | grep -v "already mounted"
+	mount -a -v 2> /dev/null | grep -v "already mounted" |  grep -v "ignored"
 	/bin/rm -f /var/lock/* /var/spool/uucp/LCK..* /tmp/.X*lock /tmp/core /core 2> /dev/null
 } &
 
