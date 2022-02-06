@@ -23,9 +23,6 @@
 # modified for colorized screen messages and local needs
 . /etc/shell-colors
 
-# Tell the viewers what's going to happen.
-echo -e "${BOLDBLUE}Running System V scripts.${COLOR_RESET}"
-
 # Run an init script:
 startup() {
   case "$1" in
@@ -47,6 +44,9 @@ if [ "$runlevel" = "" ]; then
   prevlevel=$PREVLEVEL
   export prevlevel
 fi
+
+# Tell the viewers what's going to happen.
+echo -e "${BOLDBLUE}Running System V scripts for runlevel ${runlevel}.${COLOR_RESET}"
 
 # Run kill scripts:
 for script in /etc/rc.d/rc$runlevel.d/K* ; do
