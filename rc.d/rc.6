@@ -12,6 +12,19 @@
 # modified for colorized screen messages and local needs
 . /etc/shell-colors
 
+# Set hostname if an /etc/hostname_new file is present
+if [ -f /etc/hostname_new ]; then
+  NEW_HOSTNAME=`cat /etc/hostname_new`
+  # just make sure hostname is not empty
+  if [ ! -z $NEW_HOSTNAME ]; then
+    echo -e "${BOLDGREEN}Setting hostname to ${NEW_HOSTNAME}${COLOR_RESET}"
+    mv /etc/hostname_new /etc/HOSTNAME
+  else
+    echo -e "${BOLDRED}Cannot set hostname to empty.${COLOR_RESET}"
+    rm -f /etc/hostname_new
+  fi
+fi
+
 # Tell the viewers what's going to happen...
 echo
 echo -e "${BOLDYELLOW}Preparing to halt all processes.${COLOR_RESET}"
